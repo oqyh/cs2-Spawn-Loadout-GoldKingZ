@@ -1,4 +1,4 @@
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.0)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.1)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
@@ -21,10 +21,19 @@
 
 ```json
 {
-  //Give Weapon Per Round
-  "GiveOneTimePerRound": false,
-  
-  //Flags To Give CT_Vip Or T_Vip
+  //Give Weapons LoadOut One Time Per Round?
+  "GiveOneTimeLoadOutPerRound": false,
+
+  //Give Refill Nades One Time Per Round?
+  "GiveOneTimeRefillNadesPerRound": false,
+
+  //Give Vips Weapons LoadOut One Time Per Round?
+  "Vips_GiveOneTimeLoadOutPerRound": false,
+
+  //Give Vips Refill Nades One Time Per Round?
+  "Vips_GiveOneTimeRefillNadesPerRound": false,
+
+  //Vip Flags/Groups
   "Vips": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
 
 }
@@ -39,13 +48,26 @@
 > "ANY" Will Override All Maps, if you make it "awp_" it will give to loadout to any map start with `awp_ `                                          
 > Maps Override Path Example //"ANY" > "awp_" > "awp_lego_" > "awp_lego_2"
 
+> [!NOTE]
+> `Refill_Nades` Is Which Nade You Want To Be Refill (ex: weapon_decoy,weapon_flashbang,weapon_hegrenade,weapon_incgrenade,weapon_molotov,weapon_smokegrenade)                                          
+> if you add `Refill_Nades` How Much To Wait To Refill Next Nade In Secs `Refill_Time_InSec`  
+
 ```json
 {
   "ANY": { //ANY > awp_ > awp_lego_ > awp_lego_2
-    "CT": "weapon_hkp2000,weapon_knife",
-    "CT_Vip": "weapon_taser,weapon_smokegrenade", //Assign In config.json "Vips"
-    "T": "weapon_glock,weapon_knife",
-    "T_Vip": "weapon_taser,weapon_smokegrenade"
+    "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
+    "CT_Refill_Nades": "",
+    "CT_Refill_Time_InSec": 30,
+    "CT_Vip": "weapon_taser,weapon_smokegrenade,weapon_decoy", //Assign In config.json "Vips"
+    "CT_Vip_Refill_Nades": "weapon_decoy",
+    "CT_Vip_Refill_Time_InSec": 30,
+	
+    "T": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
+    "T_Refill_Nades": "",
+    "T_Refill_Time_InSec": 30,
+    "T_Vip": "weapon_taser,weapon_smokegrenade,weapon_decoy",
+    "T_Vip_Refill_Nades": "weapon_decoy",
+    "T_Vip_Refill_Time_InSec": 30
   },
   "de_": {
     "CT": "weapon_ssg08,weapon_deagle",
@@ -142,6 +164,17 @@ item_heavyassaultsuit
 
 ## .:[ Change Log ]:.
 ```
+(1.0.1)
+-Upgrade Net.7 To Net.8
+-Fix Some Bugs 
+-Fixed GiveOneTimePerRound
+-Added GiveOneTimeLoadOutPerRound
+-Added GiveOneTimeRefillNadesPerRound
+-Added Vips_GiveOneTimeLoadOutPerRound
+-Added Vips_GiveOneTimeRefillNadesPerRound
+-Added Refill_Nades
+-Added Refill_Time_InSec
+
 (1.0.0)
 -Initial Release
 ```
