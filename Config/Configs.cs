@@ -77,14 +77,20 @@ namespace Spawn_Loadout_GoldKingZ.Config
 
         public class ConfigData
         {
-            public bool GiveOneTimePerRound { get; set; }
+            public bool GiveOneTimeLoadOutPerRound { get; set; }
+            public bool GiveOneTimeRefillNadesPerRound { get; set; }
+            public bool Vips_GiveOneTimeLoadOutPerRound { get; set; }
+            public bool Vips_GiveOneTimeRefillNadesPerRound { get; set; }
             public string Vips { get; set; }
             public string empty2 { get; set; }
             public string Information_For_You_Dont_Delete_it { get; set; }
             
             public ConfigData()
             {
-                GiveOneTimePerRound = false;
+                GiveOneTimeLoadOutPerRound = false;
+                GiveOneTimeRefillNadesPerRound = false;
+                Vips_GiveOneTimeLoadOutPerRound = false;
+                Vips_GiveOneTimeRefillNadesPerRound = false;
                 Vips = "@css/root,@css/admin,@css/vip,#css/admin,#css/vip";
                 empty2 = "-----------------------------------------------------------------------------------";
                 Information_For_You_Dont_Delete_it = " Vist  [https://github.com/oqyh/cs2-Spawn-Loadout-GoldKingZ/tree/main?tab=readme-ov-file#-configuration-] To Understand All Above";
