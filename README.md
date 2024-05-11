@@ -42,7 +42,7 @@
 ## .:[ Weapons Configuration ]:.
 
 > [!CAUTION]
-> Weapon Config Located In ..\addons\counterstrikesharp\plugins\Spawn-Loadout-GoldKingZ\Weapons\Weapons.json                                           
+> Weapon Config Located In ..\addons\counterstrikesharp\plugins\Spawn-Loadout-GoldKingZ\config\weapons.json                                         
 
 > [!WARNING]
 > "ANY" Will Override All Maps, if you make it "awp_" it will give to loadout to any map start with `awp_ `                                          
