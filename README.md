@@ -1,4 +1,4 @@
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.1)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.2)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
@@ -13,32 +13,6 @@
 [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json)
 
 
-## .:[ Configuration ]:.
-
-> [!CAUTION]
-> Config Located In ..\addons\counterstrikesharp\plugins\Spawn-Loadout-GoldKingZ\config\config.json                                           
->
-
-```json
-{
-  //Give Weapons LoadOut One Time Per Round?
-  "GiveOneTimeLoadOutPerRound": false,
-
-  //Give Refill Nades One Time Per Round?
-  "GiveOneTimeRefillNadesPerRound": false,
-
-  //Give Vips Weapons LoadOut One Time Per Round?
-  "Vips_GiveOneTimeLoadOutPerRound": false,
-
-  //Give Vips Refill Nades One Time Per Round?
-  "Vips_GiveOneTimeRefillNadesPerRound": false,
-
-  //Vip Flags/Groups
-  "Vips": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
-
-}
-```
-
 ## .:[ Weapons Configuration ]:.
 
 > [!CAUTION]
@@ -48,37 +22,40 @@
 > "ANY" Will Override All Maps, if you make it "awp_" it will give to loadout to any map start with `awp_ `                                          
 > Maps Override Path Example //"ANY" > "awp_" > "awp_lego_" > "awp_lego_2"
 
-> [!NOTE]
-> `Refill_Nades` Is Which Nade You Want To Be Refill (ex: weapon_decoy,weapon_flashbang,weapon_hegrenade,weapon_incgrenade,weapon_molotov,weapon_smokegrenade)                                          
-> if you add `Refill_Nades` How Much To Wait To Refill Next Nade In Secs `Refill_Time_InSec`  
-
 ```json
+
 {
-  "ANY": { //ANY > awp_ > awp_lego_ > awp_lego_2
-    "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
-    "CT_Refill_Nades": "",
-    "CT_Refill_Time_InSec": 30,
-    "CT_Vip": "weapon_taser,weapon_smokegrenade,weapon_decoy", //Assign In config.json "Vips"
-    "CT_Vip_Refill_Nades": "weapon_decoy",
-    "CT_Vip_Refill_Time_InSec": 30,
-	
-    "T": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
-    "T_Refill_Nades": "",
-    "T_Refill_Time_InSec": 30,
-    "T_Vip": "weapon_taser,weapon_smokegrenade,weapon_decoy",
-    "T_Vip_Refill_Nades": "weapon_decoy",
-    "T_Vip_Refill_Time_InSec": 30
-  },
-  "de_": {
-    "CT": "weapon_ssg08,weapon_deagle",
-    "T": "weapon_ssg08,weapon_deagle"
-  },
-  "awp_lego_2": {
-    "CT": "weapon_awp,weapon_deagle",
-    "CT_Vip": "weapon_taser",
-    "T": "weapon_awp,weapon_deagle"
-  }
+	"ANY"://<Map Name>
+	{
+		"ForceStripPlayers": true, //Force Strip All Weapons From Player Before You Give LoadOuts (Default Is False Or If Not Used It Will Set False)
+		"DeleteGroundWeapons": true, //Delete Ground Weapons After Give LoadOuts (Default Is False Or If Not Used It Will Set False)
+		"LOADOUT_1"://LoadOut 1 <LOADOUT_X>
+		{
+			//Important Note: If Player Get Loadout 1 Example AK47 and in Loadout 2 You Give AWP LoadOut 1 Will Override LoadOut 2 Because Slot Where Rifle At is Gived
+			//Make Sure Vips/Flags Always LOADOUT_1 To Override LOADOUT_2
+			
+			"GiveThisLoadOutPerRoundOnly": true, //Give LOADOUT_1 This Round ONLY, The Next Spawn Will Not Get LOADOUT_1 Until Start New Round (Default Is False Or If Not Used It Will Set False)
+			
+			"FLAGS": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip", //Flags Add Many As You Like (Not Using It Or Making It ["FLAGS": ""] Empty Means Give LOADOUT_1 To Everyone)
+			
+			"CT": "weapon_taser,weapon_decoy", //CT Loadout
+			"T": "weapon_taser,weapon_decoy", //T Loadout
+			
+			"CT_Refill_Nades": "weapon_decoy", //Give Auto Refill (ex: decoy) CT Side
+			"CT_Refill_Time_InSec": 30, //Every 30 Secs Give (ex: decoy)
+			
+			"T_Refill_Nades": "weapon_decoy", //Give Auto Refill (ex: decoy) T Side
+			"T_Refill_Time_InSec": 30 //Every 30 Secs Give (ex: decoy)
+		},
+		"LOADOUT_2"://LoadOut 2
+		{
+		  "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
+		  "T": "weapon_hkp2000,weapon_knife,weapon_smokegrenade"
+		}
+		//You Can Add More LOADOUT_X
+	}
 }
+
 ```
 
 > [!TIP]
@@ -164,6 +141,20 @@ item_heavyassaultsuit
 
 ## .:[ Change Log ]:.
 ```
+(1.0.2)
+-Rework Loadout Method 
+-Deleted config.json 
+-Removed GiveOneTimeLoadOutPerRound
+-Removed GiveOneTimeRefillNadesPerRound
+-Removed Vips_GiveOneTimeLoadOutPerRound
+-Removed Vips_GiveOneTimeRefillNadesPerRound
+-Removed Vips
+-Added ForceStripPlayers
+-Added DeleteGroundWeapons
+-Added LOADOUT_X Many Loadout as You Like
+-Added FLAGS
+-Added GiveThisLoadOutPerRoundOnly
+
 (1.0.1)
 -Upgrade Net.7 To Net.8
 -Fix Some Bugs 
