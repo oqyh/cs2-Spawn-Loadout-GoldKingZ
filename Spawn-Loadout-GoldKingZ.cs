@@ -4,45 +4,30 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
 using Spawn_Loadout_GoldKingZ.Config;
+using Newtonsoft.Json.Linq;
+using System.Net;
+using CounterStrikeSharp.API.Modules.Entities;
+
 namespace Spawn_Loadout_GoldKingZ;
 
 public class SpawnLoadoutGoldKingZ : BasePlugin
 {
     public override string ModuleName => "Give Weapons On Spawn (Depend The Map Name + Team Side)";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.0.2";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
     
-    private CustomGameData? CustomFunctions { get; set; }
+    
     public override void Load(bool hotReload)
     {
-        Configs.Load(ModuleDirectory);
-        CustomFunctions = new CustomGameData();
-        CreateDefaultWeaponsJson();
-        RegisterEventHandler<EventPlayerConnectFull>(OnEventPlayerConnectFull);
+        Configs.Shared.CookiesModule = ModuleDirectory;
+        Configs.Shared.CustomFunctions = new CustomGameData();
+        Helper.CreateDefaultWeaponsJson();
         RegisterEventHandler<EventPlayerSpawn>(OnEventPlayerSpawn, HookMode.Post);
         RegisterEventHandler<EventGrenadeThrown>(OnEventGrenadeThrown, HookMode.Post);
         RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
         RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
         RegisterEventHandler<EventRoundStart>(OnEventRoundStart);
-    }
-    public HookResult OnEventPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
-    {
-        if (@event == null)return HookResult.Continue;
-        var player = @event.Userid;
-
-        if (player == null || !player.IsValid || player.IsBot || player.IsHLTV) return HookResult.Continue;
-        var playerid = player.SteamID;
-
-        if(!string.IsNullOrEmpty(Configs.GetConfigData().Vips) && Helper.IsPlayerInGroupPermission(player, Configs.GetConfigData().Vips))
-        {
-            if (!Globals.VipsFlag.ContainsKey(playerid))
-            {
-                Globals.VipsFlag.Add(playerid, true);
-            }
-        }
-
-        return HookResult.Continue;
     }
     public HookResult OnEventGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
@@ -85,174 +70,84 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
 
         if (TeamWeapon != null)
         {
-            if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
+            foreach (var loadout in TeamWeapon.Properties())
             {
-                string[] weaponsCT;
-                weaponsCT = TeamWeapon["CT_Refill_Nades"]?.ToString()?.Split(',') ?? new string[0];
-                float TimerCT = TeamWeapon?.ContainsKey("CT_Refill_Time_InSec") == true ? TeamWeapon["CT_Refill_Time_InSec"] : 1;
-
-                foreach (string weaponCT in weaponsCT)
+                string loadoutName = loadout.Name;
+                JToken loadoutValueToken = loadout.Value;
+                if (loadoutValueToken.Type == JTokenType.Object)
                 {
-                    if (string.IsNullOrWhiteSpace(weaponCT))continue;
-                    if(Configs.GetConfigData().GiveOneTimeRefillNadesPerRound && Globals.NadeGived.ContainsKey(playerid))continue;
-                    if("weapon_" + nadename == weaponCT)
+                    JObject loadoutValue = (JObject)loadoutValueToken;
+
+                    string HasFlag = loadoutValue.ContainsKey("FLAGS") ? loadoutValue["FLAGS"]!.ToString() : null!;
+                    string ctREFILENades = loadoutValue.ContainsKey("CT_Refill_Nades") ? loadoutValue["CT_Refill_Nades"]!.ToString() : null!;
+                    string tREFILENades = loadoutValue.ContainsKey("T_Refill_Nades") ? loadoutValue["T_Refill_Nades"]!.ToString() : null!;
+                    int ctRefillTime = loadoutValue.ContainsKey("CT_Refill_Time_InSec") ? (int)loadoutValue["CT_Refill_Time_InSec"]! : 1;
+                    int tRefillTime = loadoutValue.ContainsKey("T_Refill_Time_InSec") ? (int)loadoutValue["T_Refill_Time_InSec"]! : 1;
+                    bool giveOncePerRound = loadoutValue.ContainsKey("GiveThisLoadOutPerRoundOnly") ? (bool)loadoutValue["GiveThisLoadOutPerRoundOnly"]! : false;
+
+                    if (HasFlag != null && !string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
+                    if (giveOncePerRound)
                     {
-                        Server.NextFrame(() =>
+                        if (!Globals.loadoutsGivenPerPlayer.ContainsKey(playerid))
                         {
-                            AddTimer(TimerCT, () =>
-                            {
-                                if (player != null && player.IsValid)
-                                {
-                                    CustomFunctions!.PlayerGiveNamedItem(player, "weapon_" + nadename);
-                                    if (Configs.GetConfigData().GiveOneTimeRefillNadesPerRound && !Globals.NadeGived.ContainsKey(playerid))
-                                    {
-                                        Globals.NadeGived.Add(playerid, true);
-                                    }
-                                    
-                                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weaponCT))
-                                    {
-                                        if (entity.DesignerName != weaponCT) continue;
-                                        if (entity == null) continue;
-                                        if (entity.Entity == null) continue;
-                                        if (entity.OwnerEntity == null) continue;
-                                        if(entity.OwnerEntity.IsValid) continue;
+                            Globals.loadoutsGivenPerPlayer[playerid] = new HashSet<string>();
+                        }
 
-                                        entity.AcceptInput("Kill");
-                                    }
-                                }
-                            }, TimerFlags.STOP_ON_MAPCHANGE);
-                        });
-                    }
-                }
-                
-                    
-
-                if(Globals.VipsFlag.ContainsKey(playerid))
-                {
-                    string[] weaponsCTVip;
-                    weaponsCTVip = TeamWeapon!["CT_Vip_Refill_Nades"]?.ToString()?.Split(',') ?? new string[0];
-                    float TimerCTVip = TeamWeapon?.ContainsKey("CT_Vip_Refill_Time_InSec") == true ? TeamWeapon["CT_Vip_Refill_Time_InSec"] : 1;
-
-                    foreach (string weaponCTVip in weaponsCTVip)
-                    {
-                        if (string.IsNullOrWhiteSpace(weaponCTVip))continue;
-                        if(Configs.GetConfigData().Vips_GiveOneTimeRefillNadesPerRound && Globals.VipNadeGived.ContainsKey(playerid))continue;
-                        if("weapon_" + nadename == weaponCTVip)
+                        if (Globals.loadoutsGivenPerPlayer[playerid].Contains(loadoutName))
                         {
-                            Server.NextFrame(() =>
-                            {
-                                AddTimer(TimerCTVip, () =>
-                                {
-                                    if (player != null && player.IsValid)
-                                    {
-                                        CustomFunctions!.PlayerGiveNamedItem(player, "weapon_" + nadename);
-                                        if (Configs.GetConfigData().Vips_GiveOneTimeRefillNadesPerRound && !Globals.VipNadeGived.ContainsKey(playerid))
-                                        {
-                                            Globals.NadeGived.Add(playerid, true);
-                                        }
-                                        
-                                        foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weaponCTVip))
-                                        {
-                                            if (entity.DesignerName != weaponCTVip) continue;
-                                            if (entity == null) continue;
-                                            if (entity.Entity == null) continue;
-                                            if (entity.OwnerEntity == null) continue;
-                                            if(entity.OwnerEntity.IsValid) continue;
-
-                                            entity.AcceptInput("Kill");
-                                        }
-                                    }
-                                }, TimerFlags.STOP_ON_MAPCHANGE);
-                            });
+                            continue;
+                        }
+                        else
+                        {
+                            Globals.loadoutsGivenPerPlayer[playerid].Add(loadoutName);
                         }
                     }
-                }
-                
-            }else if (player.TeamNum == (byte)CsTeam.Terrorist)
-            {
-                string[] weaponsT;
-                weaponsT = TeamWeapon["T_Refill_Nades"]?.ToString()?.Split(',') ?? new string[0];
-                float TimerT = TeamWeapon?.ContainsKey("T_Refill_Time_InSec") == true ? TeamWeapon["T_Refill_Time_InSec"] : 1;
 
-                foreach (string weaponT in weaponsT)
-                {
-                    if (string.IsNullOrWhiteSpace(weaponT))continue;
-                    if(Configs.GetConfigData().GiveOneTimeRefillNadesPerRound && Globals.NadeGived.ContainsKey(playerid))continue;
-                    if("weapon_" + nadename == weaponT)
+                    if (player.TeamNum == (byte)CsTeam.CounterTerrorist && ctREFILENades != null)
                     {
-                        Server.NextFrame(() =>
+                        var ctRefillNadesArray = ctREFILENades.Split(',');
+                        foreach (var grenade in ctRefillNadesArray)
                         {
-                            AddTimer(TimerT, () =>
+                            if ("weapon_" + nadename == grenade.Trim())
                             {
-                                if (player != null && player.IsValid)
+                                Server.NextFrame(() =>
                                 {
-                                    CustomFunctions!.PlayerGiveNamedItem(player, "weapon_" + nadename);
-                                    if (Configs.GetConfigData().GiveOneTimeRefillNadesPerRound && !Globals.NadeGived.ContainsKey(playerid))
+                                    AddTimer(ctRefillTime, () =>
                                     {
-                                        Globals.NadeGived.Add(playerid, true);
-                                    }
-                                    
-                                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weaponT))
-                                    {
-                                        if (entity.DesignerName != weaponT) continue;
-                                        if (entity == null) continue;
-                                        if (entity.Entity == null) continue;
-                                        if (entity.OwnerEntity == null) continue;
-                                        if(entity.OwnerEntity.IsValid) continue;
-
-                                        entity.AcceptInput("Kill");
-                                    }
-                                }
-                            }, TimerFlags.STOP_ON_MAPCHANGE);
-                        });
-                    }
-                }
-                
-                    
-
-                if(Globals.VipsFlag.ContainsKey(playerid))
-                {
-                    string[] weaponsTVip;
-                    weaponsTVip = TeamWeapon!["T_Vip_Refill_Nades"]?.ToString()?.Split(',') ?? new string[0];
-                    float TimerTVip = TeamWeapon?.ContainsKey("T_Vip_Refill_Time_InSec") == true ? TeamWeapon["T_Vip_Refill_Time_InSec"] : 1;
-
-                    foreach (string weaponTVip in weaponsTVip)
+                                        if(player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.CounterTerrorist)
+                                        {
+                                            Helper.GiveWeaponsToPlayer(player, "weapon_" + nadename);
+                                        }
+                                    }, TimerFlags.STOP_ON_MAPCHANGE);
+                                });
+                                break;
+                            }
+                        }
+                    }else if (player.TeamNum == (byte)CsTeam.Terrorist && tREFILENades != null)
                     {
-                        if (string.IsNullOrWhiteSpace(weaponTVip))continue;
-                        if(Configs.GetConfigData().Vips_GiveOneTimeRefillNadesPerRound && Globals.VipNadeGived.ContainsKey(playerid))continue;
-                        if("weapon_" + nadename == weaponTVip)
+                        var tRefillNadesArray = tREFILENades.Split(',');
+                        foreach (var grenade in tRefillNadesArray)
                         {
-                            Server.NextFrame(() =>
+                            if ("weapon_" + nadename == grenade.Trim())
                             {
-                                AddTimer(TimerTVip, () =>
+                                Server.NextFrame(() =>
                                 {
-                                    if (player != null && player.IsValid)
+                                    AddTimer(tRefillTime, () =>
                                     {
-                                        CustomFunctions!.PlayerGiveNamedItem(player, "weapon_" + nadename);
-                                        if (Configs.GetConfigData().Vips_GiveOneTimeRefillNadesPerRound && !Globals.VipNadeGived.ContainsKey(playerid))
+                                        if(player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.Terrorist)
                                         {
-                                            Globals.NadeGived.Add(playerid, true);
+                                            Helper.GiveWeaponsToPlayer(player, "weapon_" + nadename);
                                         }
-                                        
-                                        foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weaponTVip))
-                                        {
-                                            if (entity.DesignerName != weaponTVip) continue;
-                                            if (entity == null) continue;
-                                            if (entity.Entity == null) continue;
-                                            if (entity.OwnerEntity == null) continue;
-                                            if(entity.OwnerEntity.IsValid) continue;
-
-                                            entity.AcceptInput("Kill");
-                                        }
-                                    }
-                                }, TimerFlags.STOP_ON_MAPCHANGE);
-                            });
+                                    }, TimerFlags.STOP_ON_MAPCHANGE);
+                                });
+                                break;
+                            }
                         }
                     }
                 }
             }
-            
         }
+
         return HookResult.Continue;
     }
     
@@ -262,7 +157,7 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
         var player = @event.Userid;
         if (player == null || !player.IsValid) return HookResult.Continue;
         var playerid = player.SteamID;
-        
+
         string mapname = Globals.SMapName;
         int underscoreIndex = Globals.SMapName.IndexOf('_');
         int nextUnderscoreIndex = Globals.SMapName.IndexOf('_', underscoreIndex + 1);
@@ -277,212 +172,153 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
         }
 
         string jsonString = File.ReadAllText(jsonFilePath);
-        dynamic jsonData = JsonConvert.DeserializeObject(jsonString)!;
+        JObject jsonData = JObject.Parse(jsonString);
 
-        dynamic TeamWeapon = null!;
-        if(jsonData.ContainsKey("ANY"))
+        JObject TeamWeapon = null!;
+        if (jsonData.ContainsKey("ANY"))
         {
-           TeamWeapon = jsonData["ANY"]; 
-        }else if(jsonData.ContainsKey(prefix))
+            TeamWeapon = (JObject)jsonData["ANY"]!;
+        }
+        else if (jsonData.ContainsKey(prefix))
         {
-            TeamWeapon = jsonData[prefix]; 
-        }else if(jsonData.ContainsKey(prefix2))
+            TeamWeapon = (JObject)jsonData[prefix]!;
+        }
+        else if (jsonData.ContainsKey(prefix2))
         {
-            TeamWeapon = jsonData[prefix2]; 
-        }else if(jsonData.ContainsKey(mapname))
+            TeamWeapon = (JObject)jsonData[prefix2]!;
+        }
+        else if (jsonData.ContainsKey(mapname))
         {
-            TeamWeapon = jsonData[mapname]; 
+            TeamWeapon = (JObject)jsonData[mapname]!;
         }
 
         if (TeamWeapon != null)
         {
-            if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
+            Server.NextFrame(() =>
             {
-                string[] weaponsCT;
-                weaponsCT = TeamWeapon["CT"]?.ToString()?.Split(',') ?? new string[0];
-                foreach (string weapon in weaponsCT)
+                bool forceStripPlayers = false;
+                bool AutoDeleteGroundWeapns = false;
+
+                if (TeamWeapon.ContainsKey("ForceStripPlayers") && TeamWeapon["ForceStripPlayers"]!.Type == JTokenType.Boolean)
                 {
-                    if (string.IsNullOrWhiteSpace(weapon))continue;
-                    if(Configs.GetConfigData().GiveOneTimeLoadOutPerRound && Globals.Gived.ContainsKey(playerid))continue;
+                    forceStripPlayers = (bool)TeamWeapon["ForceStripPlayers"]!;
+                }
 
-                    CustomFunctions!.PlayerGiveNamedItem(player, weapon);
+                if (TeamWeapon.ContainsKey("DeleteGroundWeapons") && TeamWeapon["DeleteGroundWeapons"]!.Type == JTokenType.Boolean)
+                {
+                    AutoDeleteGroundWeapns = (bool)TeamWeapon["DeleteGroundWeapons"]!;
+                }
 
-                    if (Configs.GetConfigData().GiveOneTimeLoadOutPerRound && !Globals.Gived.ContainsKey(playerid))
+                if(forceStripPlayers)
+                {
+                    AddTimer(0.1f, () =>
                     {
-                        Globals.Gived.Add(playerid, true);
-                    }
-                    
-                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weapon))
-                    {
-                        if (entity.DesignerName != weapon) continue;
-                        if (entity == null) continue;
-                        if (entity.Entity == null) continue;
-                        if (entity.OwnerEntity == null) continue;
-                        if(entity.OwnerEntity.IsValid) continue;
+                        Helper.DropAllWeapons(player);
+                    });
+                }
 
-                        entity.AcceptInput("Kill");
-                    }
-                    
+                if(AutoDeleteGroundWeapns)
+                {
+                    AddTimer(3.0f, () =>
+                    {
+                        Helper.ClearGroundWeapons();
+                    });
                 }
                 
-
-                if(Globals.VipsFlag.ContainsKey(playerid))
+                foreach (var loadout in TeamWeapon.Properties())
                 {
-                    string[] weaponsCTVip;
-                    weaponsCTVip = TeamWeapon["CT_Vip"]?.ToString()?.Split(',') ?? new string[0];
-                    foreach (string weapon in weaponsCTVip)
+                    string loadoutName = loadout.Name;
+                    JToken loadoutValueToken = loadout.Value;
+                    if (loadoutValueToken.Type == JTokenType.Object)
                     {
-                        if (string.IsNullOrWhiteSpace(weapon))continue;
-                        if(Configs.GetConfigData().Vips_GiveOneTimeLoadOutPerRound && Globals.Gived.ContainsKey(playerid))continue;
+                        JObject loadoutValue = (JObject)loadoutValueToken;
+                        string HasFlag = loadoutValue.ContainsKey("FLAGS") ? loadoutValue["FLAGS"]!.ToString() : null!;
+                        string ctWeapons = loadoutValue.ContainsKey("CT") ? loadoutValue["CT"]!.ToString() : null!;
+                        string tWeapons = loadoutValue.ContainsKey("T") ? loadoutValue["T"]!.ToString() : null!;
+                        bool giveOncePerRound = loadoutValue.ContainsKey("GiveThisLoadOutPerRoundOnly") ? (bool)loadoutValue["GiveThisLoadOutPerRoundOnly"]! : false;
+                        
 
-                        CustomFunctions!.PlayerGiveNamedItem(player, weapon);
-
-                        if (Configs.GetConfigData().Vips_GiveOneTimeLoadOutPerRound && !Globals.Gived.ContainsKey(playerid))
+                        if (HasFlag != null && !string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
+                        if (giveOncePerRound)
                         {
-                            Globals.Gived.Add(playerid, true);
+                            if (!Globals.loadoutsGivenPerPlayer.ContainsKey(playerid))
+                            {
+                                Globals.loadoutsGivenPerPlayer[playerid] = new HashSet<string>();
+                            }
+
+                            if (Globals.loadoutsGivenPerPlayer[playerid].Contains(loadoutName))
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                Globals.loadoutsGivenPerPlayer[playerid].Add(loadoutName);
+                            }
+                        }
+                        float delay = 0.1f;
+                        if(forceStripPlayers)
+                        {
+                            delay = 2.0f;
                         }
 
-                        foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weapon))
+                        AddTimer(delay, () =>
                         {
-                            if (entity.DesignerName != weapon) continue;
-                            if (entity == null) continue;
-                            if (entity.Entity == null) continue;
-                            if (entity.OwnerEntity == null) continue;
-                            if(entity.OwnerEntity.IsValid) continue;
-
-                            entity.AcceptInput("Kill");
-                        }
+                            if (player != null && player.IsValid && player.TeamNum == (byte)CsTeam.CounterTerrorist && ctWeapons != null)
+                            {
+                                string[] weaponsCT = ctWeapons.Split(',');
+                                foreach (var Weapon in weaponsCT)
+                                {
+                                    if (string.IsNullOrWhiteSpace(Weapon))continue;
+                                    Helper.GiveWeaponsToPlayer(player, Weapon);
+                                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(Weapon))
+                                    {
+                                        if (entity.DesignerName != Weapon) continue;
+                                        if (entity == null) continue;
+                                        if (entity.Entity == null) continue;
+                                        if (entity.OwnerEntity == null) continue;
+                                        if (entity.OwnerEntity.IsValid) continue;
+                                        entity.AcceptInput("Kill");
+                                    }
+                                    
+                                }
+                            }
+                            else if (player != null && player.IsValid && player.TeamNum == (byte)CsTeam.Terrorist && tWeapons != null)
+                            {
+                                string[] weaponsT = tWeapons.Split(',');
+                                foreach (var Weapon in weaponsT)
+                                {
+                                    
+                                    if (string.IsNullOrWhiteSpace(Weapon))continue;
+                                    Helper.GiveWeaponsToPlayer(player, Weapon);
+                                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(Weapon))
+                                    {
+                                        if (entity.DesignerName != Weapon) continue;
+                                        if (entity == null) continue;
+                                        if (entity.Entity == null) continue;
+                                        if (entity.OwnerEntity == null) continue;
+                                        if (entity.OwnerEntity.IsValid) continue;
+                                        entity.AcceptInput("Kill");
+                                    }
+                                }  
+                            }
+                        });
                     }
                 }
-                
-            }else if (player.TeamNum == (byte)CsTeam.Terrorist)
-            {
-                string[] weaponsT;
-                weaponsT = TeamWeapon["T"]?.ToString()?.Split(',') ?? new string[0];
-                foreach (string weapon in weaponsT)
-                {
-                    if (string.IsNullOrWhiteSpace(weapon))continue;
-                    if(Configs.GetConfigData().GiveOneTimeLoadOutPerRound && Globals.Gived.ContainsKey(playerid))continue;
-
-                    CustomFunctions!.PlayerGiveNamedItem(player, weapon);
-
-                    if (Configs.GetConfigData().GiveOneTimeLoadOutPerRound && !Globals.Gived.ContainsKey(playerid))
-                    {
-                        Globals.Gived.Add(playerid, true);
-                    }
-                    
-                    foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weapon))
-                    {
-                        if (entity.DesignerName != weapon) continue;
-                        if (entity == null) continue;
-                        if (entity.Entity == null) continue;
-                        if (entity.OwnerEntity == null) continue;
-                        if(entity.OwnerEntity.IsValid) continue;
-
-                        entity.AcceptInput("Kill");
-                    }
-                    
-                }
-                
-
-                if(Globals.VipsFlag.ContainsKey(playerid))
-                {
-                    string[] weaponsTVip;
-                    weaponsTVip = TeamWeapon["T_Vip"]?.ToString()?.Split(',') ?? new string[0];
-                    foreach (string weapon in weaponsTVip)
-                    {
-                        if (string.IsNullOrWhiteSpace(weapon))continue;
-                        if(Configs.GetConfigData().Vips_GiveOneTimeLoadOutPerRound && Globals.Gived.ContainsKey(playerid))continue;
-
-                        CustomFunctions!.PlayerGiveNamedItem(player, weapon);
-
-                        if (Configs.GetConfigData().Vips_GiveOneTimeLoadOutPerRound && !Globals.Gived.ContainsKey(playerid))
-                        {
-                            Globals.Gived.Add(playerid, true);
-                        }
-
-                        foreach (var entity in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>(weapon))
-                        {
-                            if (entity.DesignerName != weapon) continue;
-                            if (entity == null) continue;
-                            if (entity.Entity == null) continue;
-                            if (entity.OwnerEntity == null) continue;
-                            if(entity.OwnerEntity.IsValid) continue;
-
-                            entity.AcceptInput("Kill");
-                        }
-                    }
-                }
-            }
-            
+            });
         }
 
         return HookResult.Continue;
-    }
-
-    private void CreateDefaultWeaponsJson()
-    {
-        var FolderConfig = Path.Combine(ModuleDirectory, "../../plugins/Spawn-Loadout-GoldKingZ/config/");
-        var configcfg = Path.Combine(FolderConfig, "weapons.json");
-
-        if (!Directory.Exists(FolderConfig) || !File.Exists(configcfg))
-        {
-            if (!Directory.Exists(FolderConfig))
-            {
-                Directory.CreateDirectory(FolderConfig);
-            }
-
-            var weaponsData = new 
-            {
-                ANY = new
-                {
-                    CT = "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
-                    CT_Refill_Nades = "",
-                    CT_Refill_Time_InSec = 30,
-                    CT_Vip = "weapon_taser,weapon_smokegrenade,weapon_decoy",
-                    CT_Vip_Refill_Nades = "weapon_decoy",
-                    CT_Vip_Refill_Time_InSec = 30,
-                    T = "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
-                    T_Refill_Nades = "",
-                    T_Refill_Time_InSec = 30,
-                    T_Vip = "weapon_taser,weapon_smokegrenade,weapon_decoy",
-                    T_Vip_Refill_Nades = "weapon_decoy",
-                    T_Vip_Refill_Time_InSec = 30
-                },
-                de_ = new
-                {
-                    CT = "weapon_ssg08,weapon_deagle",
-                    T = "weapon_ssg08,weapon_deagle"
-                },
-                awp_lego_2 = new
-                {
-                    CT = "weapon_awp,weapon_deagle",
-                    CT_Vip = "weapon_taser",
-                    T = "weapon_awp,weapon_deagle"
-                }
-            };
-
-
-            var jsonContent = JsonConvert.SerializeObject(weaponsData, Formatting.Indented);
-
-            File.WriteAllText(configcfg, jsonContent);
-        }
     }
 
 
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
     {
         if (@event == null)return HookResult.Continue;
-
         var player = @event.Userid;
 
         if (player == null || !player.IsValid)return HookResult.Continue;
 
-        Globals.VipsFlag.Remove(player.SteamID);
-        Globals.Gived.Remove(player.SteamID);
-        Globals.NadeGived.Remove(player.SteamID);
-        Globals.VipGived.Remove(player.SteamID);
-        Globals.VipNadeGived.Remove(player.SteamID);
+        Globals.loadoutsGivenPerPlayer.Remove(player.SteamID);
 
         return HookResult.Continue;
     }
@@ -490,10 +326,7 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
     {
         if(@event == null)return HookResult.Continue;
 
-        Globals.Gived.Clear();
-        Globals.NadeGived.Clear();
-        Globals.VipGived.Clear();
-        Globals.VipNadeGived.Clear();
+        Globals.loadoutsGivenPerPlayer.Clear();
 
         return HookResult.Continue;
     }
