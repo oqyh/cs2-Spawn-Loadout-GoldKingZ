@@ -94,12 +94,12 @@ public class Helper
 
         foreach (var weapon in player.PlayerPawn.Value.WeaponServices.MyWeapons)
         {
-            if (weapon is { IsValid: true, Value.IsValid: true } && !weapon.Value.DesignerName.Contains("weapon_knife"))
-            {
-                player.DropActiveWeapon();
-
-                weapon.Value.Remove();
-            }
+            if (weapon == null || !weapon.IsValid) continue;
+            var weaponValue = weapon.Value;
+            if (weaponValue == null || !weaponValue.IsValid) continue;
+            if (weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_knife") || weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_c4"))continue;
+            if(weaponValue.DesignerName == null)continue;
+            Utilities.RemoveItemByDesignerName(player, weaponValue.DesignerName);
         }
         
     }
