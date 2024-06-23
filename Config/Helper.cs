@@ -84,7 +84,7 @@ public class Helper
         }
     }
 
-    public static void DropAllWeapons(CCSPlayerController player)
+    public static void DropAllWeaponsAndDelete(CCSPlayerController player)
     {
         if(player == null || !player.IsValid)return;
         if(player.PlayerPawn == null || !player.PlayerPawn.IsValid)return;
@@ -99,9 +99,11 @@ public class Helper
             if (weaponValue == null || !weaponValue.IsValid) continue;
             if (weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_knife") || weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_c4"))continue;
             if(weaponValue.DesignerName == null)continue;
-            Utilities.RemoveItemByDesignerName(player, weaponValue.DesignerName);
+            player.DropActiveWeapon();
+            if (weaponValue.OwnerEntity == null) continue;
+            if(weaponValue.OwnerEntity.IsValid) continue;
+            if(weapon.Value != null)weapon.Value.Remove();
         }
-        
     }
     public static void CreateDefaultWeaponsJson()
     {

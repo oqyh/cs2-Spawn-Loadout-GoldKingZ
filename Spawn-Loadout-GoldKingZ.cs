@@ -13,9 +13,10 @@ namespace Spawn_Loadout_GoldKingZ;
 public class SpawnLoadoutGoldKingZ : BasePlugin
 {
     public override string ModuleName => "Give Weapons On Spawn (Depend The Map Name + Team Side)";
-    public override string ModuleVersion => "1.0.3";
+    public override string ModuleVersion => "1.0.4";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
+    
     
     public override void Load(bool hotReload)
     {
@@ -212,7 +213,7 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
                 {
                     AddTimer(0.1f, () =>
                     {
-                        Helper.DropAllWeapons(player);
+                        Helper.DropAllWeaponsAndDelete(player);
                     });
                 }
 
