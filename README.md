@@ -1,4 +1,4 @@
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.3)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.4)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
@@ -141,6 +141,9 @@ item_heavyassaultsuit
 
 ## .:[ Change Log ]:.
 ```
+(1.0.4)
+-Fix ForceStripPlayers
+
 (1.0.3)
 -Fix ForceStripPlayers
 
