@@ -3,7 +3,7 @@
 <a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
 
 ***
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.4)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.5)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
@@ -146,6 +146,9 @@ item_heavyassaultsuit
 
 ## .:[ Change Log ]:.
 ```
+(1.0.5)
+-Fix ForceStripPlayers For Windows And Lunix
+
 (1.0.4)
 -Fix ForceStripPlayers
 
