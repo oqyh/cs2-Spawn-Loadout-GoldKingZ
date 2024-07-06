@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API;
@@ -84,7 +85,26 @@ public class Helper
         }
     }
 
-    public static void DropAllWeaponsAndDelete(CCSPlayerController player)
+    public static void DropAllWeaponsAndDeleteLunix(CCSPlayerController player)
+    {
+        if(player == null || !player.IsValid)return;
+        if(player.PlayerPawn == null || !player.PlayerPawn.IsValid)return;
+        if(!player.PawnIsAlive)return;
+        if(player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid)return;
+        if(player.PlayerPawn.Value.WeaponServices == null || player.PlayerPawn.Value.WeaponServices.MyWeapons == null)return;
+
+        foreach (var weapon in player.PlayerPawn.Value.WeaponServices.MyWeapons)
+        {
+            if (weapon == null || !weapon.IsValid) continue;
+            var weaponValue = weapon.Value;
+            if (weaponValue == null || !weaponValue.IsValid) continue;
+            if (weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_knife") || weaponValue.DesignerName != null && weaponValue.DesignerName.Contains("weapon_c4"))continue;
+            if(weaponValue.DesignerName == null)continue;
+            player.ExecuteClientCommand("slot3");
+            Utilities.RemoveItemByDesignerName(player, weaponValue.DesignerName);
+        }
+    }
+    public static void DropAllWeaponsAndDeleteWin(CCSPlayerController player)
     {
         if(player == null || !player.IsValid)return;
         if(player.PlayerPawn == null || !player.PlayerPawn.IsValid)return;
@@ -178,5 +198,9 @@ public class Helper
 
             File.WriteAllText(configcfg, jsonContent);
         }
+    }
+    public static bool IsWindows()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     }
 }

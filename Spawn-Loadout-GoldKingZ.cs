@@ -5,15 +5,13 @@ using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
 using Spawn_Loadout_GoldKingZ.Config;
 using Newtonsoft.Json.Linq;
-using System.Net;
-using CounterStrikeSharp.API.Modules.Entities;
 
 namespace Spawn_Loadout_GoldKingZ;
 
 public class SpawnLoadoutGoldKingZ : BasePlugin
 {
     public override string ModuleName => "Give Weapons On Spawn (Depend The Map Name + Team Side)";
-    public override string ModuleVersion => "1.0.4";
+    public override string ModuleVersion => "1.0.5";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
     
@@ -29,6 +27,7 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
         RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
         RegisterEventHandler<EventRoundStart>(OnEventRoundStart);
     }
+    
     public HookResult OnEventGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
         if (@event == null) return HookResult.Continue;
@@ -213,7 +212,14 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
                 {
                     AddTimer(0.1f, () =>
                     {
-                        Helper.DropAllWeaponsAndDelete(player);
+                        if(Helper.IsWindows())
+                        {
+                            Helper.DropAllWeaponsAndDeleteWin(player);
+                        }else
+                        {
+                            Helper.DropAllWeaponsAndDeleteLunix(player);
+                        }
+                        
                     });
                 }
 
