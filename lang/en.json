@@ -1,0 +1,5 @@
+{
+    "PrintChatToPlayer.Not.Allowed.ToReload": "{green}Gold KingZ {grey}| {darkred}You Dont Have Access To This Command.",
+    "PrintChatToPlayer.Plugin.Reloaded": "{green}Gold KingZ {grey}| {lime}LoadOut Plugin Reloaded!",
+    "PrintChatToPlayer.Got.Loadout": "{green}Gold KingZ {grey}| You Already Got Loadout, You Will Not Be Given This Round."
+}
