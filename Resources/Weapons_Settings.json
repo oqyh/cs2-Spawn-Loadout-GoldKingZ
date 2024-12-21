@@ -1,0 +1,56 @@
+{
+  "ANY":
+  {
+    "Remove_Ground_Weapons": 1,
+    
+	"LOADOUT_1":
+	{
+      "Flags": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
+      "CT": "weapon_taser,weapon_decoy",
+      "T": "weapon_taser,weapon_decoy",
+      "CT_Refill_Nades": "weapon_decoy",
+      "CT_Refill_Time_InSec": 30,
+      "T_Refill_Nades": "weapon_decoy",
+      "T_Refill_Time_InSec": 30
+    },
+    "LOADOUT_2":
+	{
+      "Give_This_LoadOut_PerRound_Only": 1,
+      "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
+      "T": "weapon_glock,weapon_knife,weapon_smokegrenade"
+    }
+  },
+  "hns_":
+  {
+    "LOADOUT_1":
+	{
+      "FLAGS": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
+      "CT_Refill_Nades": "weapon_decoy",
+      "CT_Refill_Time_InSec": 30,
+      "T_Refill_Nades": "weapon_decoy",
+      "T_Refill_Time_InSec": 30
+    },
+    "LOADOUT_2":
+	{
+      "Give_This_LoadOut_PerRound_Only": 2,
+      "CT": "weapon_decoy",
+      "T": "weapon_decoy"
+    }
+  },
+  "awp_lego_2":
+  {
+    "Force_Strip_Players": true,
+    "Remove_Knife": true,
+    "Remove_BuyMenu": true,
+    "Remove_Custom_Point_Server_Command": true,
+    "Remove_Custom_Point_Client_Command": true,
+    "Remove_Ground_Weapons": 1,
+    "Delay_InXSecs_Give_LoadOuts": 1,
+	
+    "LOADOUT_1":
+	{
+      "CT": "weapon_ssg08",
+      "T": "weapon_ssg08"
+    }
+  }
+}
