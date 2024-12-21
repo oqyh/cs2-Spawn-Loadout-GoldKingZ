@@ -3,7 +3,7 @@
 <a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
 
 ***
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.6)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.7)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
@@ -34,10 +34,13 @@
   // Command Ingame To Reload Weapons_Settings.json
   "SL_Reload_Weapons_Settings_CommandsInGame": "!loadouts,!relaodloadouts,!restartloadouts,!loadout,!relaodloadout,!restartloadout",
 
-//----------------------------[ ↓ Debug ↓ ]----------------------------------------------
+//----------------------------[ ↓ Utilities ↓ ]----------------------------------------------
   
+  //Auto Update Signatures
+  "AutoUpdateSignatures": true,
+
   //Enable Debug Will Print Server Console If You Face Any Issue
-  "EnableDebug": false,
+  "EnableDebug": false
 
 }
 ```
@@ -59,6 +62,9 @@
 		//==========================
 		//        Map Options
 		//==========================
+		// "Force_Strip_Players": "true" //Force To Strip Players (If false Or Not Been Used This Will Return To false)
+		// "Players_Health": 35 //Give Players Health 35
+		// "Players_Armor": 35 //Give Players Armor 35
 		// "Force_Strip_Players": "true" //Force To Strip Players (If false Or Not Been Used This Will Return To false)
 		// "Remove_BuyMenu": "true" //Remove Buy Menu (If false Or Not Been Used This Will Return To false)
 		// "Remove_Knife": "true" //Remove Players Knifes (If false Or Not Been Used This Will Return To false)
@@ -206,6 +212,13 @@ item_heavyassaultsuit
 
 ## .:[ Change Log ]:.
 ```
+(1.0.7)
+-Update GiveNamedItem2
+-Added AutoUpdateSignatures Into Config
+-Added Players_Health
+-Added Players_Armor
+
+
 (1.0.6)
 -Rework Method On Giving And Removing Weapons
 -Fix Some Bugs
