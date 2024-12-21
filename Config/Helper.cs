@@ -78,124 +78,33 @@ public class Helper
     }
 
 
-    public static bool IsPlayerInGroupPermission(CCSPlayerController? player, string groups)
+    public static bool IsPlayerInGroupPermission(CCSPlayerController player, string groups)
     {
         var excludedGroups = groups.Split(',');
         foreach (var group in excludedGroups)
         {
-            switch (group[0])
+            if(group.StartsWith("#"))
             {
-                case '#':
-                    if (AdminManager.PlayerInGroup(player, group))
-                        return true;
-                    break;
+                if (AdminManager.PlayerInGroup(player, group))
+                {
+                    return true;
+                }
 
-                case '@':
-                    if (AdminManager.PlayerHasPermissions(player, group))
-                        return true;
-                    break;
-
-                default:
-                    return false;
+            }else if(group.StartsWith("@"))
+            {
+                if (AdminManager.PlayerHasPermissions(player, group))
+                {
+                    return true;
+                }
+            }else
+            {
+                if (AdminManager.PlayerInGroup(player, group))
+                {
+                    return true;
+                }
             }
-        }
+        }   
         return false;
-    }
-
-    public static void CreateGameData(string jsonFilePath)
-    {
-        if (!File.Exists(jsonFilePath))
-        {
-            var configData = new Dictionary<string, object>
-            {
-                ["GiveNamedItem2"] = new Dictionary<string, object>
-                {
-                    ["signatures"] = new Dictionary<string, string>
-                    {
-                        ["library"] = "server",
-                        ["windows"] = "48 83 EC ? 48 C7 44 24 ? ? ? ? ? 45 33 C9 45 33 C0 C6 44 24 ? ? E8 ? ? ? ? 48 85 C0",
-                        ["linux"] = "55 48 89 E5 41 57 41 56 41 55 41 54 53 48 83 EC ? 48 89 7D ? 48 85 F6 74"
-                    }
-                }
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-
-            string json = System.Text.Json.JsonSerializer.Serialize(configData, options);
-            File.WriteAllText(jsonFilePath, json);
-        }
-    }
-    public static void CreateWeaponsJson(string jsonFilePath)
-    {
-        if (!File.Exists(jsonFilePath))
-        {
-            var configData = new Dictionary<string, object>
-            {
-                ["ANY"] = new Dictionary<string, object>
-                {
-                    ["Remove_Ground_Weapons"] = 1,
-                    ["LOADOUT_1"] = new Dictionary<string, object>
-                    {
-                        ["Flags"] = "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
-                        ["CT"] = "weapon_taser,weapon_decoy",
-                        ["T"] = "weapon_taser,weapon_decoy",
-                        ["CT_Refill_Nades"] = "weapon_decoy",
-                        ["CT_Refill_Time_InSec"] = 30,
-                        ["T_Refill_Nades"] = "weapon_decoy",
-                        ["T_Refill_Time_InSec"] = 30
-                    },
-                    ["LOADOUT_2"] = new Dictionary<string, object>
-                    {
-                        ["Give_This_LoadOut_PerRound_Only"] = 1,
-                        ["CT"] = "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
-                        ["T"] = "weapon_glock,weapon_knife,weapon_smokegrenade"
-                    }
-                },
-                ["hns_"] = new Dictionary<string, object>
-                {
-                    ["LOADOUT_1"] = new Dictionary<string, object>
-                    {
-                        ["FLAGS"] = "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
-                        ["CT_Refill_Nades"] = "weapon_decoy",
-                        ["CT_Refill_Time_InSec"] = 30,
-                        ["T_Refill_Nades"] = "weapon_decoy",
-                        ["T_Refill_Time_InSec"] = 30
-                    },
-                    ["LOADOUT_2"] = new Dictionary<string, object>
-                    {
-                        ["Give_This_LoadOut_PerRound_Only"] = 2,
-                        ["CT"] = "weapon_decoy",
-                        ["T"] = "weapon_decoy"
-                    }
-                },
-                ["awp_lego_2"] = new Dictionary<string, object>
-                {
-                    ["Force_Strip_Players"] = true,
-                    ["Remove_Knife"] = true,
-                    ["Remove_BuyMenu"] = true,
-                    ["Remove_Custom_Point_Server_Command"] = true,
-                    ["Remove_Custom_Point_Client_Command"] = true,
-                    ["Remove_Ground_Weapons"] = 1,
-                    ["Delay_InXSecs_Give_LoadOuts"] = 1.0,
-                    ["LOADOUT_1"] = new Dictionary<string, object>
-                    {
-                        ["CT"] = "weapon_ssg08",
-                        ["T"] = "weapon_ssg08"
-                    }
-                }
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-
-            string json = System.Text.Json.JsonSerializer.Serialize(configData, options);
-            File.WriteAllText(jsonFilePath, json);
-        }
     }
 
     public static void ClearVariables()
@@ -219,6 +128,9 @@ public class Helper
         SpawnLoadoutGoldKingZ.Instance.g_Main.ForceStripPlayers = false;
         SpawnLoadoutGoldKingZ.Instance.g_Main.ForceRemoveGroundWeapons = 0;
         SpawnLoadoutGoldKingZ.Instance.g_Main.DelayGiveLoadOut = 0.0f;
+        SpawnLoadoutGoldKingZ.Instance.g_Main.GiveHealth = -1;
+        SpawnLoadoutGoldKingZ.Instance.g_Main.GiveArmor = -1;
+
         Server.ExecuteCommand("sv_buy_status_override -1");
     }
 
@@ -413,6 +325,29 @@ public class Helper
                 SpawnLoadoutGoldKingZ.Instance.g_Main.RemoveBuyMenu = true; 
             }
         }
+
+        if (jsonValues.ContainsKey("Players_Health"))
+        {
+            int Players_Health = jsonValues["Players_Health"] != null 
+                                    ? (int)jsonValues["Players_Health"] 
+                                    : -1;
+            if (Players_Health > -1)
+            {
+                SpawnLoadoutGoldKingZ.Instance.g_Main.GiveHealth = Players_Health; 
+            }
+        }
+
+        if (jsonValues.ContainsKey("Players_Armor"))
+        {
+            int Players_Armor = jsonValues["Players_Armor"] != null 
+                                    ? (int)jsonValues["Players_Armor"] 
+                                    : -1;
+            if (Players_Armor > -1)
+            {
+                SpawnLoadoutGoldKingZ.Instance.g_Main.GiveArmor = Players_Armor; 
+            }
+        }
+
         if (jsonValues.ContainsKey("Remove_Knife"))
         {
             bool RemoveKnife = jsonValues["Remove_Knife"] != null 
@@ -514,6 +449,128 @@ public class Helper
             {
                 RemoveWeaponByName(player, weaponsDesignerName);
             }
+        }
+    }
+
+    public static async Task DownloadMissingFiles()
+    {
+        string baseFolderPath = Configs.Shared.CookiesModule!;
+
+        string gamedataFileName = "gamedata/Spawn_Loadout_gamedata.json";
+        string gamedataGithubUrl = "https://raw.githubusercontent.com/oqyh/cs2-Spawn-Loadout-GoldKingZ/main/Resources/Spawn_Loadout_gamedata.json";
+        string gamedataFilePath = Path.Combine(baseFolderPath, gamedataFileName);
+        string gamedataDirectoryPath = Path.GetDirectoryName(gamedataFilePath)!;
+        await CheckAndDownloadFile(gamedataFilePath, gamedataGithubUrl, gamedataDirectoryPath);
+
+
+        string settingsFileName = "config/Weapons_Settings.json";
+        string settingsGithubUrl = "https://raw.githubusercontent.com/oqyh/cs2-Spawn-Loadout-GoldKingZ/main/Resources/Weapons_Settings.json";
+        string settingsFilePath = Path.Combine(baseFolderPath, settingsFileName);
+        string settingsDirectoryPath = Path.GetDirectoryName(settingsFilePath)!;
+        await DownloadFileIfNotExists(settingsFilePath, settingsGithubUrl, settingsDirectoryPath);
+    }
+    public static async Task DownloadFileIfNotExists(string filePath, string githubUrl, string directoryPath)
+    {
+        if (!File.Exists(filePath))
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            await DownloadFileFromGithub(githubUrl, filePath);
+        }
+    }
+
+    public static async Task<bool> CheckAndDownloadFile(string filePath, string githubUrl, string directoryPath)
+    {
+        if (!File.Exists(filePath))
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            await DownloadFileFromGithub(githubUrl, filePath);
+            return true;
+        }
+        else
+        {
+            if (Configs.GetConfigData().AutoUpdateSignatures)
+            {
+                bool isFileDifferent = await IsFileDifferent(filePath, githubUrl);
+                if (isFileDifferent)
+                {
+                    File.Delete(filePath);
+                    await DownloadFileFromGithub(githubUrl, filePath);
+                    return true;
+                }
+            }
+            
+        }
+
+        return false;
+    }
+
+
+    public static async Task<bool> IsFileDifferent(string localFilePath, string githubUrl)
+    {
+        try
+        {
+            byte[] localFileBytes = await File.ReadAllBytesAsync(localFilePath);
+            string localFileHash = GetFileHash(localFileBytes);
+
+            using (HttpClient client = new HttpClient())
+            {
+                byte[] githubFileBytes = await client.GetByteArrayAsync(githubUrl);
+                string githubFileHash = GetFileHash(githubFileBytes);
+                return localFileHash != githubFileHash;
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugMessage($"Error comparing files: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static string GetFileHash(byte[] fileBytes)
+    {
+        using (var md5 = System.Security.Cryptography.MD5.Create())
+        {
+            byte[] hashBytes = md5.ComputeHash(fileBytes);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        }
+    }
+
+    public static async Task DownloadFileFromGithub(string url, string destinationPath)
+    {
+        using (HttpClient client = new HttpClient())
+        {
+            try
+            {
+                byte[] fileBytes = await client.GetByteArrayAsync(url);
+                await File.WriteAllBytesAsync(destinationPath, fileBytes);
+            }
+            catch (Exception ex)
+            {
+                DebugMessage($"Error downloading file: {ex.Message}");
+            }
+        }
+    }
+
+    public static void GivePlayerHealthNArmor(CCSPlayerController player)
+    {
+        if(player == null || !player.IsValid || !player.PawnIsAlive)return;
+
+        if(SpawnLoadoutGoldKingZ.Instance.g_Main.GiveHealth > -1)
+        {
+            player.PlayerPawn!.Value!.Health = SpawnLoadoutGoldKingZ.Instance.g_Main.GiveHealth;
+            Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
+        }
+
+        if(SpawnLoadoutGoldKingZ.Instance.g_Main.GiveArmor > -1)
+        {
+            player.PlayerPawn!.Value!.ArmorValue = SpawnLoadoutGoldKingZ.Instance.g_Main.GiveArmor;
+            Utilities.SetStateChanged(player.PlayerPawn.Value, "CCSPlayerPawn", "m_ArmorValue");
         }
     }
     

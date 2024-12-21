@@ -13,6 +13,8 @@ public class Globals
     public bool ForceRemoveClientCommands = false;
     public bool ForceStripPlayers = false;
     public int ForceRemoveGroundWeapons = 0;
+    public int GiveArmor = -1;
+    public int GiveHealth = -1;
     public float DelayGiveLoadOut = 0.0f;
 
     public class GetPlayerWeapons

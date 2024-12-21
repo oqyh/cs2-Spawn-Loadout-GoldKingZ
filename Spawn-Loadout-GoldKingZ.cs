@@ -9,6 +9,7 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Core.Attributes;
+using CounterStrikeSharp.API.Modules.Entities;
 
 namespace Spawn_Loadout_GoldKingZ;
 
@@ -16,7 +17,7 @@ namespace Spawn_Loadout_GoldKingZ;
 public class SpawnLoadoutGoldKingZ : BasePlugin
 {
     public override string ModuleName => "Give Weapons On Spawn (Depend The Map Name + Team Side)";
-    public override string ModuleVersion => "1.0.6";
+    public override string ModuleVersion => "1.0.7";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
 
@@ -24,13 +25,18 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
     public Globals g_Main = new();
     private readonly PlayerChat _PlayerChat = new();
     
-    
     public override void Load(bool hotReload)
     {
         Instance = this;
         Configs.Load(ModuleDirectory);
         Configs.Shared.CookiesModule = ModuleDirectory;
         Configs.Shared.StringLocalizer = Localizer;
+
+        _ = Task.Run(async () =>
+        {
+            await Helper.DownloadMissingFiles();
+        });
+
         Configs.Shared.CustomFunctions = new CustomGameData();
         Helper.SetValuesToGlobals();
 
@@ -218,7 +224,10 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
         
         var jsonValues = g_Main.GetJsonValues();
         if (jsonValues == null || jsonValues.Count == 0) return HookResult.Continue;
-
+        Server.NextFrame(() =>
+        {
+            Helper.GivePlayerHealthNArmor(player);
+        });
         foreach (var loadout in jsonValues)
         {
             

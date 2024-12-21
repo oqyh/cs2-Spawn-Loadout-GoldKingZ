@@ -13,12 +13,7 @@ namespace Spawn_Loadout_GoldKingZ.Config
         }
 
         private static readonly string ConfigDirectoryName = "config";
-        private static readonly string ConfigDirectoryName2 = "gamedata";
         private static readonly string ConfigFileName = "config.json";
-        private static readonly string jsonFilePath2 = "Spawn_Loadout_gamedata.json";
-        private static string? _jsonFilePath2;
-        private static readonly string jsonFilePath3 = "Weapons_Settings.json";
-        private static string? _jsonFilePath3;
         private static string? _configFilePath;
         private static ConfigData? _configData;
 
@@ -56,19 +51,6 @@ namespace Spawn_Loadout_GoldKingZ.Config
             {
                 Directory.CreateDirectory(configFileDirectory);
             }
-
-            var configFileDirectory2 = Path.Combine(modulePath, ConfigDirectoryName2);
-            if(!Directory.Exists(configFileDirectory2))
-            {
-                Directory.CreateDirectory(configFileDirectory2);
-            }
-            
-
-            _jsonFilePath2 = Path.Combine(configFileDirectory2, jsonFilePath2);
-            Helper.CreateGameData(_jsonFilePath2);
-
-            _jsonFilePath3 = Path.Combine(configFileDirectory, jsonFilePath3);
-            Helper.CreateWeaponsJson(_jsonFilePath3);
 
             _configFilePath = Path.Combine(configFileDirectory, ConfigFileName);
             if (File.Exists(_configFilePath))
@@ -111,6 +93,7 @@ namespace Spawn_Loadout_GoldKingZ.Config
             public string SL_Reload_Weapons_Settings_Flags { get; set; }
             public string SL_Reload_Weapons_Settings_CommandsInGame { get; set; }
             public string empty1 { get; set; }
+            public bool AutoUpdateSignatures { get; set; }
             public bool EnableDebug { get; set; }
             public string empty2 { get; set; }
             public string Information_For_You_Dont_Delete_it { get; set; }
@@ -120,7 +103,8 @@ namespace Spawn_Loadout_GoldKingZ.Config
                 empty = "----------------------------[ ↓ Spawn Loadout Configs ↓ ]---------------------------------";
                 SL_Reload_Weapons_Settings_Flags = "@css/root,@css/admin";
                 SL_Reload_Weapons_Settings_CommandsInGame = "!loadouts,!relaodloadouts,!restartloadouts,!loadout,!relaodloadout,!restartloadout";
-                empty1 = "----------------------------[ ↓ Debug ↓ ]----------------------------------------------";
+                empty1 = "----------------------------[ ↓ Utilities ↓ ]----------------------------------------------";
+                AutoUpdateSignatures = true;
                 EnableDebug = false;
                 empty2 = "----------------------------[ ↓ Info For All Configs Above ↓ ]----------------------------";
                 Information_For_You_Dont_Delete_it = " Vist  [https://github.com/oqyh/cs2-Spawn-Loadout-GoldKingZ/tree/main?tab=readme-ov-file#-configuration-] To Understand All Above";
