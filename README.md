@@ -88,7 +88,6 @@
 			// "T_Refill_Nades": "weapon_decoy" //Give Auto Refill (ex: decoy) T Side
 			// "T_Refill_Time_InSec": 30 //Every 30 Secs Give T_Refill_Nades
 			// "Give_This_LoadOut_PerRound_Only": "0" // (1) = Give LoadOut Unlimited In Warmup But In Round Start Make It One Time || (2) = Give LoadOut In Warmup One Time And In Round Start One Time || (If 0 Or Not Been Used This Will Return To 0)
-			// "Delay_InXSecs_Give_LoadOuts": "0.0" //Delay On Give LoadOuts (If 0.0 Or Not Been Used This Will Return To 0.0)
 			//==========================
 		},
 		"LOADOUT_2"://LoadOut 2
