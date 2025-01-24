@@ -65,7 +65,6 @@
 		// "Force_Strip_Players": "true" //Force To Strip Players (If false Or Not Been Used This Will Return To false)
 		// "Players_Health": 35 //Give Players Health 35
 		// "Players_Armor": 35 //Give Players Armor 35
-		// "Force_Strip_Players": "true" //Force To Strip Players (If false Or Not Been Used This Will Return To false)
 		// "Remove_BuyMenu": "true" //Remove Buy Menu (If false Or Not Been Used This Will Return To false)
 		// "Remove_Knife": "true" //Remove Players Knifes (If false Or Not Been Used This Will Return To false)
 		// "Remove_Custom_Point_Server_Command": "true" //Remove point_servercommand Custom ConVars (If false Or Not Been Used This Will Return To false)
