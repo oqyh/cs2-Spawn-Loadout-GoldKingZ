@@ -158,8 +158,6 @@ weapon_mac10
 weapon_ump45
 weapon_xm1014
 weapon_bizon
-weapon_knife
-weapon_knife_t
 --------------------------
 
 
@@ -205,6 +203,9 @@ weapon_c4
 weapon_healthshot
 weapon_shield
 item_heavyassaultsuit
+weapon_snowball
+weapon_knife
+weapon_knife_t
 --------------------------
 ```
 
