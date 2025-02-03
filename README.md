@@ -60,25 +60,30 @@
 	"ANY"://<Map Name>
 	{
 		//==========================
-		//        Map Options
+		//    Global Options
 		//==========================
-		// "Force_Strip_Players": "true" //Force To Strip Players (If false Or Not Been Used This Will Return To false)
-		// "Players_Health": 35 //Give Players Health 35
-		// "Players_Armor": 35 //Give Players Armor 35
-		// "Remove_BuyMenu": "true" //Remove Buy Menu (If false Or Not Been Used This Will Return To false)
-		// "Remove_Knife": "true" //Remove Players Knifes (If false Or Not Been Used This Will Return To false)
-		// "Remove_Custom_Point_Server_Command": "true" //Remove point_servercommand Custom ConVars (If false Or Not Been Used This Will Return To false)
-		// "Remove_Custom_Point_Client_Command": "true" //Remove point_clientcommand Custom ConVars (If false Or Not Been Used This Will Return To false)
-		// "Remove_Ground_Weapons": "0" // (1) = Remove Ground Weapons Only In Warmup || (2) = Remove Ground Weapons Any Cases || (If 0 Or Not Been Used This Will Return To 0)
-		// "Delay_InXSecs_Give_LoadOuts": "0.0" //Delay On Give LoadOuts (If 0.0 Or Not Been Used This Will Return To 0.0)
+		// "Force_Strip_CT_Players": true //Force To Strip CT Players [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+		// "Force_Strip_T_Players": true //Force To Strip T Players [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+		// "Remove_BuyMenu": true //Remove Buy Menu (If false Or Not Been Used This Will Disabled)
+		// "Remove_Custom_Point_Server_Command": true //Remove point_servercommand Custom ConVars (If false Or Not Been Used This Will Disabled)
+		// "Remove_Custom_Point_Client_Command": true //Remove point_clientcommand Custom ConVars (If false Or Not Been Used This Will Disabled)
+		// "Players_Health_CT": 35 //Give ALL CT Players Health 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+		// "Players_Health_T": 35 //Give ALL T Players Health 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+		// "Players_Armor_CT": 35 //Give ALL CT Players Armor 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+		// "Players_Armor_T": 35 //Give ALL T Players Armor 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+		// "Remove_Ground_Weapons_After_Give_Loadouts": true //Remove Ground Weapons After Give Loadouts (If false Or Not Been Used This Will Disabled)
+		// "Delay_InXSecs_Give_LoadOuts": 0.2 //Delay On Give LoadOuts 0.2 Secs (If 0.0 Or Not Been Used This Will Return To 0.0)
+		// "Remove_Knife_CT": true //Remove CT Players Knifes [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+		// "Remove_Knife_T": true //Remove T Players Knifes [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
 		//==========================
+
 		"LOADOUT_1"://LoadOut 1 <LOADOUT_X>
 		{
 			//Important Note: If Player Get Loadout 1 Example AK47 and in Loadout 2 You Give AWP LoadOut 1 Will Override LoadOut 2 Because Slot Where Rifle At, is Gived
 			//Make Sure Vips/Flags Always LOADOUT_1 To Override LOADOUT_2
 			
 			//==========================
-			//        LOADOUT Options
+			// Specific LOADOUT Options
 			//==========================
 			// "Flags": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip" //Give This LoadOut For These Flags Only (If Empty Or Not Been Used This Will Return To Give Anyone)
 			// "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade" //CT Loadout
@@ -87,7 +92,17 @@
 			// "CT_Refill_Time_InSec": 30 //Every 30 Secs Give CT_Refill_Nades
 			// "T_Refill_Nades": "weapon_decoy" //Give Auto Refill (ex: decoy) T Side
 			// "T_Refill_Time_InSec": 30 //Every 30 Secs Give T_Refill_Nades
-			// "Give_This_LoadOut_PerRound_Only": "0" // (1) = Give LoadOut Unlimited In Warmup But In Round Start Make It One Time || (2) = Give LoadOut In Warmup One Time And In Round Start One Time || (If 0 Or Not Been Used This Will Return To 0)
+			// "Force_Strip_CT_Players": true // Force Strip CT Players Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+			// "Force_Strip_T_Players": true // Force Strip T Players Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+			// "Players_Health_CT": 35 //Give ALL CT Players Health 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+			// "Players_Health_T": 35 //Give ALL T Players Health 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+			// "Players_Armor_CT": 35 //Give ALL CT Players Armor 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+			// "Players_Armor_T": 35 //Give ALL T Players Armor 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+			// "Remove_Knife_CT": true //Remove CT Players Knifes Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+			// "Remove_Knife_T": true //Remove T Players Knifes Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+			// "Force_Give_This_LoadOut": true // Force Give This LoadOut (By Swaping His Current Weapons) (If false Or Not Been Used This Will Disabled)
+			// "Give_This_LoadOut_OneTime": true // Give This LoadOut On Every New Round One Time (If false Or Not Been Used This Will Disabled)
+			// "Give_This_LoadOut_On_Round_And_After": 1 // Only Give This LoadOut On Round (0 = Warmup || 1 = Round One etc...) (If -1 Or Not Been Used This Will Disabled)
 			//==========================
 		},
 		"LOADOUT_2"://LoadOut 2
@@ -211,6 +226,20 @@ weapon_knife_t
 
 ## .:[ Change Log ]:.
 ```
+(1.0.8)
+-Rework On Plugin
+-Fix On Giving Weapons
+-Added Players_Armor_CT
+-Added Players_Armor_T
+-Added Players_Health_CT
+-Added Players_Health_T
+-Added Remove_Knife_CT
+-Added Remove_Knife_T
+-Added Force_Strip_CT_Players
+-Added Force_Strip_T_Players
+-Added Force_Give_This_LoadOut
+-Added Give_This_LoadOut_On_Round_And_After
+
 (1.0.7)
 -Update GiveNamedItem2
 -Added AutoUpdateSignatures Into Config
