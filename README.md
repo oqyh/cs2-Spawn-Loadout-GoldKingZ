@@ -3,7 +3,7 @@
 <a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
 
 ***
-# [CS2] Spawn-Loadout-GoldKingZ (1.0.7)
+# [CS2] Spawn-Loadout-GoldKingZ (1.0.8)
 
 ### Give Weapons On Spawn (Depend The Map Name + Team Side + Vips)
 
