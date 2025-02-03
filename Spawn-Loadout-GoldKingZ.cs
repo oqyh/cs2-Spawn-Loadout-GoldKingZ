@@ -13,11 +13,10 @@ using CounterStrikeSharp.API.Modules.Entities;
 
 namespace Spawn_Loadout_GoldKingZ;
 
-[MinimumApiVersion(276)]
 public class SpawnLoadoutGoldKingZ : BasePlugin
 {
     public override string ModuleName => "Give Weapons On Spawn (Depend The Map Name + Team Side)";
-    public override string ModuleVersion => "1.0.7";
+    public override string ModuleVersion => "1.0.8";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
 
@@ -38,24 +37,31 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
         });
 
         Configs.Shared.CustomFunctions = new CustomGameData();
-        Helper.SetValuesToGlobals();
+        
 
         RegisterEventHandler<EventPlayerSpawn>(OnEventPlayerSpawn, HookMode.Post);
         RegisterEventHandler<EventGrenadeThrown>(OnEventGrenadeThrown, HookMode.Post);
-        RegisterEventHandler<EventPlayerDeath>(OnEventPlayerDeath);
         RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
         RegisterListener<Listeners.OnMapStart>(OnMapStart);
         RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
         RegisterEventHandler<EventRoundStart>(OnEventRoundStart);
         RegisterEventHandler<EventRoundPrestart>(OnEventRoundPrestart, HookMode.Pre);
         AddCommandListener("say", OnPlayerChat, HookMode.Post);
-		AddCommandListener("say_team", OnPlayerChatTeam, HookMode.Post);  
+		AddCommandListener("say_team", OnPlayerChatTeam, HookMode.Post);
+        
+        if(hotReload)
+        {
+            Helper.SetValues();
+            bool GetBoolServerCommands = g_Main.ForceRemoveServerCommands? true : false;
+            bool GetBoolClientCommands = g_Main.ForceRemoveClientCommands? true : false;
+            Helper.ClearMapCommands(GetBoolServerCommands,GetBoolClientCommands);
+        }
+        
     }
     
     public void OnMapStart(string mapname)
     {
-        Helper.SetValuesToGlobals();
-
+        Helper.SetValues();
         bool GetBoolServerCommands = g_Main.ForceRemoveServerCommands? true : false;
         bool GetBoolClientCommands = g_Main.ForceRemoveClientCommands? true : false;
         Helper.ClearMapCommands(GetBoolServerCommands,GetBoolClientCommands);
@@ -75,361 +81,250 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
     
     public HookResult OnEventGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
-        if (@event == null) return HookResult.Continue;
+        if (@event == null)return HookResult.Continue;
 
         var player = @event.Userid;
-        if (player == null || !player.IsValid) return HookResult.Continue;
+        if (player == null || !player.IsValid)return HookResult.Continue;
+
+        var Weapon = @event.Weapon;
+        if (Weapon == null)return HookResult.Continue;
         
-        var nadename = @event.Weapon;
-        if (nadename == null) return HookResult.Continue;
+        string nadename = "weapon_" + Weapon;
 
-        var playerpawn = player.PlayerPawn;
-        if (playerpawn == null || !playerpawn.IsValid) return HookResult.Continue;
-
-        var playerpawnvalue = playerpawn.Value;
-        if (playerpawnvalue == null || !playerpawnvalue.IsValid) return HookResult.Continue;
-
-        var playerWeaponServices = playerpawnvalue.WeaponServices;
-        if (playerWeaponServices == null) return HookResult.Continue;
-
-        var playerMyWeapons = playerWeaponServices.MyWeapons;
-        if (playerMyWeapons == null) return HookResult.Continue;
+        var jsonValues = g_Main.JsonData;
+        if (jsonValues == null)return HookResult.Continue;
         
-        
-        var jsonValues = g_Main.GetJsonValues();
-        if (jsonValues == null || jsonValues.Count == 0) return HookResult.Continue;
 
         foreach (var loadout in jsonValues)
         {
-            
             dynamic loadoutValue = loadout.Value;
             if (loadoutValue is JObject)
             {
                 string key = loadout.Key;
                 string loadoutName = loadoutValue.Name;
 
-                string HasFlag = loadoutValue.ContainsKey("Flags") && loadoutValue["Flags"] != null 
-                ? loadoutValue["Flags"].ToString() 
-                : null!;
-
-                string ctREFILENades = loadoutValue.ContainsKey("CT_Refill_Nades") && loadoutValue["CT_Refill_Nades"] != null 
-                    ? loadoutValue["CT_Refill_Nades"].ToString() 
+                string HasFlag = loadoutValue.ContainsKey("Flags") && loadoutValue["Flags"] != null
+                    ? loadoutValue["Flags"].ToString()
                     : null!;
 
-                string tREFILENades = loadoutValue.ContainsKey("T_Refill_Nades") && loadoutValue["T_Refill_Nades"] != null 
-                    ? loadoutValue["T_Refill_Nades"].ToString() 
+                string ctREFILENades = loadoutValue.ContainsKey("CT_Refill_Nades") && loadoutValue["CT_Refill_Nades"] != null
+                    ? loadoutValue["CT_Refill_Nades"].ToString()
                     : null!;
 
-                int ctRefillTime = loadoutValue.ContainsKey("CT_Refill_Time_InSec") && loadoutValue["CT_Refill_Time_InSec"] != null 
-                    ? (int)loadoutValue["CT_Refill_Time_InSec"] 
+                string tREFILENades = loadoutValue.ContainsKey("T_Refill_Nades") && loadoutValue["T_Refill_Nades"] != null
+                    ? loadoutValue["T_Refill_Nades"].ToString()
+                    : null!;
+
+                int ctRefillTime = loadoutValue.ContainsKey("CT_Refill_Time_InSec") && loadoutValue["CT_Refill_Time_InSec"] != null
+                    ? (int)loadoutValue["CT_Refill_Time_InSec"]
                     : 0;
 
-                int tRefillTime = loadoutValue.ContainsKey("T_Refill_Time_InSec") && loadoutValue["T_Refill_Time_InSec"] != null 
-                    ? (int)loadoutValue["T_Refill_Time_InSec"] 
+                int tRefillTime = loadoutValue.ContainsKey("T_Refill_Time_InSec") && loadoutValue["T_Refill_Time_InSec"] != null
+                    ? (int)loadoutValue["T_Refill_Time_InSec"]
                     : 0;
 
+                bool Give_This_LoadOut_OneTime = loadoutValue.ContainsKey("Give_This_LoadOut_OneTime") && loadoutValue["Give_This_LoadOut_OneTime"] != null
+                    ? (bool)loadoutValue["Give_This_LoadOut_OneTime"]
+                    : false;
 
-                int giveOncePerRound = loadoutValue.ContainsKey("Give_This_LoadOut_PerRound_Only") && loadoutValue["Give_This_LoadOut_PerRound_Only"] != null 
-                    ? (int)loadoutValue["Give_This_LoadOut_PerRound_Only"] 
-                    : 0;
-                
+                int Give_This_LoadOut_On_Round_And_After = loadoutValue.ContainsKey("Give_This_LoadOut_On_Round_And_After") && loadoutValue["Give_This_LoadOut_On_Round_And_After"] != null
+                    ? (int)loadoutValue["Give_This_LoadOut_On_Round_And_After"]
+                    : -1;
 
-                if (HasFlag != null && !string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
-                
-                if (giveOncePerRound == 1 || giveOncePerRound == 2)
+                if (!string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
+
+                if (Give_This_LoadOut_On_Round_And_After > -1 && Helper.GetCurrentRound() < Give_This_LoadOut_On_Round_And_After)
                 {
-                    if (!Helper.IsWarmup() || giveOncePerRound == 2)
-                    {
-                        if (!g_Main.loadoutsGivenPerPlayer.ContainsKey(player))
-                        {
-                            g_Main.loadoutsGivenPerPlayer[player] = new HashSet<string>();
-                        }
+                    continue;
+                }
 
-                        if (g_Main.loadoutsGivenPerPlayer[player].Contains(loadoutName))
-                        {
-                            Helper.AdvancedPlayerPrintToChat(player, Configs.Shared.StringLocalizer!["PrintChatToPlayer.Got.Loadout"]);
-                            continue;
-                        }
-                        else
-                        {
-                            g_Main.loadoutsGivenPerPlayer[player].Add(loadoutName);
-                        }
+                if (Give_This_LoadOut_OneTime)
+                {
+                    if (!g_Main.loadoutsGivenPerPlayer.ContainsKey(player))
+                    {
+                        g_Main.loadoutsGivenPerPlayer[player] = new HashSet<string>();
+                    }
+
+                    if (g_Main.loadoutsGivenPerPlayer[player].Contains(loadoutName))
+                    {
+                        Helper.AdvancedPlayerPrintToChat(player, Configs.Shared.StringLocalizer!["PrintChatToPlayer.Got.Loadout"]);
+                        continue;
+                    }
+                    else
+                    {
+                        g_Main.loadoutsGivenPerPlayer[player].Add(loadoutName);
                     }
                 }
 
-                if(player.TeamNum == (byte)CsTeam.CounterTerrorist && ctREFILENades != null)
+                bool teamct = player.TeamNum == (byte)CsTeam.CounterTerrorist && !string.IsNullOrEmpty(ctREFILENades);
+                bool teamt = player.TeamNum == (byte)CsTeam.Terrorist && !string.IsNullOrEmpty(tREFILENades);
+                bool grenadematchct = !string.IsNullOrEmpty(ctREFILENades) && nadename.Contains(ctREFILENades.Trim());
+                bool grenadematcht = !string.IsNullOrEmpty(tREFILENades) && nadename.Contains(tREFILENades.Trim());
+
+                if (teamct && grenadematchct)
                 {
-                    var ctRefillNadesArray = ctREFILENades.Split(',');
-                    foreach (var grenade in ctRefillNadesArray)
+                    Server.NextFrame(() =>
                     {
-                        if ("weapon_" + nadename == grenade.Trim())
+                        AddTimer(ctRefillTime, () =>
                         {
-                            Server.NextFrame(() =>
+                            if (player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.CounterTerrorist)
                             {
-                                AddTimer(ctRefillTime, () =>
-                                {
-                                    if(player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.CounterTerrorist)
-                                    {
-                                        Helper.GiveWeaponsToPlayer(player, "weapon_" + nadename);
-                                    }
-                                }, TimerFlags.STOP_ON_MAPCHANGE);
-                            });
-                        }
-                        
-                    }
-                }else if(player.TeamNum == (byte)CsTeam.Terrorist && tREFILENades != null)
+                                Helper.GiveWeaponsToPlayer(player, nadename);
+                            }
+                        }, TimerFlags.STOP_ON_MAPCHANGE);
+                    });
+                }
+                else if (teamt && grenadematcht)
                 {
-                    var tRefillNadesArray = tREFILENades.Split(',');
-                    foreach (var grenade in tRefillNadesArray)
+                    Server.NextFrame(() =>
                     {
-                        if ("weapon_" + nadename == grenade.Trim())
+                        AddTimer(tRefillTime, () =>
                         {
-                            Server.NextFrame(() =>
+                            if (player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.Terrorist)
                             {
-                                AddTimer(ctRefillTime, () =>
-                                {
-                                    if(player != null && player.IsValid && player.PawnIsAlive && player.TeamNum == (byte)CsTeam.Terrorist)
-                                    {
-                                        Helper.GiveWeaponsToPlayer(player, "weapon_" + nadename);
-                                    }
-                                }, TimerFlags.STOP_ON_MAPCHANGE);
-                            });
-                        }
-                    }
+                                Helper.GiveWeaponsToPlayer(player, nadename);
+                            }
+                        }, TimerFlags.STOP_ON_MAPCHANGE);
+                    });
                 }
             }
         }
+
         return HookResult.Continue;
     }
+
     
     private HookResult OnEventPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
     {
         if (@event == null) return HookResult.Continue;
-        
+
         var player = @event.Userid;
         if (player == null || !player.IsValid) return HookResult.Continue;
-    
-        var playerpawn = player.PlayerPawn;
-        if (playerpawn == null || !playerpawn.IsValid) return HookResult.Continue;
 
-        var playerpawnvalue = playerpawn.Value;
-        if (playerpawnvalue == null || !playerpawnvalue.IsValid) return HookResult.Continue;
+        Helper.ForceStripePlayer(player);
+        Helper.GivePlayerHealthNArmor(player);
 
-        var playerWeaponServices = playerpawnvalue.WeaponServices;
-        if (playerWeaponServices == null) return HookResult.Continue;
-
-        var playerMyWeapons = playerWeaponServices.MyWeapons;
-        if (playerMyWeapons == null) return HookResult.Continue;
-        
-        
-        var jsonValues = g_Main.GetJsonValues();
-        if (jsonValues == null || jsonValues.Count == 0) return HookResult.Continue;
         Server.NextFrame(() =>
         {
-            Helper.GivePlayerHealthNArmor(player);
-        });
-        foreach (var loadout in jsonValues)
-        {
-            
-            dynamic loadoutValue = loadout.Value;
-            if (loadoutValue is JObject)
+            AddTimer(g_Main.DelayGiveLoadOut, () =>
             {
-                string key = loadout.Key;
-                string loadoutName = loadoutValue.Name;
+                if (player == null || !player.IsValid) return;
 
-                string HasFlag = loadoutValue.ContainsKey("Flags") && loadoutValue["Flags"] != null 
-                ? loadoutValue["Flags"].ToString() 
-                : null!;
+                var jsonValues = g_Main.JsonData;
+                if (jsonValues == null) return;
 
-                string ctWeapons = loadoutValue.ContainsKey("CT") && loadoutValue["CT"] != null 
-                    ? loadoutValue["CT"].ToString() 
-                    : null!;
-
-                string tWeapons = loadoutValue.ContainsKey("T") && loadoutValue["T"] != null 
-                    ? loadoutValue["T"].ToString() 
-                    : null!;
-
-                int giveOncePerRound = loadoutValue.ContainsKey("Give_This_LoadOut_PerRound_Only") && loadoutValue["Give_This_LoadOut_PerRound_Only"] != null 
-                    ? (int)loadoutValue["Give_This_LoadOut_PerRound_Only"] 
-                    : 0;
-
-                if (HasFlag != null && !string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
-                
-                if (giveOncePerRound == 1 || giveOncePerRound == 2)
+                foreach (var loadout in jsonValues)
                 {
-                    if (!Helper.IsWarmup() || giveOncePerRound == 2)
+                    dynamic loadoutValue = loadout.Value;
+                    if (loadoutValue is JObject)
                     {
-                        if (!g_Main.loadoutsGivenPerPlayer.ContainsKey(player))
-                        {
-                            g_Main.loadoutsGivenPerPlayer[player] = new HashSet<string>();
-                        }
+                        string key = loadout.Key;
+                        string loadoutName = loadoutValue.Name;
 
-                        if (g_Main.loadoutsGivenPerPlayer[player].Contains(loadoutName))
+                        string HasFlag = loadoutValue.ContainsKey("Flags") && loadoutValue["Flags"] != null 
+                        ? loadoutValue["Flags"].ToString() 
+                        : null!;
+
+                        string ctWeapons = loadoutValue.ContainsKey("CT") && loadoutValue["CT"] != null 
+                            ? loadoutValue["CT"].ToString() 
+                            : null!;
+
+                        string tWeapons = loadoutValue.ContainsKey("T") && loadoutValue["T"] != null 
+                            ? loadoutValue["T"].ToString() 
+                            : null!;
+
+                        bool Give_This_LoadOut_OneTime = loadoutValue.ContainsKey("Give_This_LoadOut_OneTime") && loadoutValue["Give_This_LoadOut_OneTime"] != null 
+                            ? (bool)loadoutValue["Give_This_LoadOut_OneTime"] 
+                            : false;
+                        
+                        bool Force_Give_This_LoadOut = loadoutValue.ContainsKey("Force_Give_This_LoadOut") && loadoutValue["Force_Give_This_LoadOut"] != null 
+                            ? (bool)loadoutValue["Force_Give_This_LoadOut"] 
+                            : false;
+
+                        bool Force_Strip_CT_Players = loadoutValue.ContainsKey("Force_Strip_CT_Players") && loadoutValue["Force_Strip_CT_Players"] != null 
+                            ? (bool)loadoutValue["Force_Strip_CT_Players"] 
+                            : false;
+
+                        bool Force_Strip_T_Players = loadoutValue.ContainsKey("Force_Strip_T_Players") && loadoutValue["Force_Strip_T_Players"] != null 
+                            ? (bool)loadoutValue["Force_Strip_T_Players"] 
+                            : false;
+
+                        bool Remove_Knife_CT = loadoutValue.ContainsKey("Remove_Knife_CT") && loadoutValue["Remove_Knife_CT"] != null 
+                            ? (bool)loadoutValue["Remove_Knife_CT"] 
+                            : false;
+
+                        bool Remove_Knife_T = loadoutValue.ContainsKey("Remove_Knife_T") && loadoutValue["Remove_Knife_T"] != null 
+                            ? (bool)loadoutValue["Remove_Knife_T"] 
+                            : false;
+
+                        int Give_This_LoadOut_On_Round_And_After = loadoutValue.ContainsKey("Give_This_LoadOut_On_Round_And_After") && loadoutValue["Give_This_LoadOut_On_Round_And_After"] != null 
+                            ? (int)loadoutValue["Give_This_LoadOut_On_Round_And_After"] 
+                            : -1;
+
+                        int Players_Health_CT = loadoutValue.ContainsKey("Players_Health_CT") && loadoutValue["Players_Health_CT"] != null 
+                            ? (int)loadoutValue["Players_Health_CT"] 
+                            : -1;
+                        
+                        int Players_Health_T = loadoutValue.ContainsKey("Players_Health_T") && loadoutValue["Players_Health_T"] != null 
+                            ? (int)loadoutValue["Players_Health_T"] 
+                            : -1;
+
+                        int Players_Armor_CT = loadoutValue.ContainsKey("Players_Armor_CT") && loadoutValue["Players_Armor_CT"] != null 
+                            ? (int)loadoutValue["Players_Armor_CT"] 
+                            : -1;
+
+                        int Players_Armor_T = loadoutValue.ContainsKey("Players_Armor_T") && loadoutValue["Players_Armor_T"] != null 
+                            ? (int)loadoutValue["Players_Armor_T"] 
+                            : -1;
+
+
+                        if (!string.IsNullOrEmpty(HasFlag) && !Helper.IsPlayerInGroupPermission(player, HasFlag)) continue;
+
+                        if (Give_This_LoadOut_On_Round_And_After > -1 && Helper.GetCurrentRound() < Give_This_LoadOut_On_Round_And_After)
                         {
-                            Helper.AdvancedPlayerPrintToChat(player, Configs.Shared.StringLocalizer!["PrintChatToPlayer.Got.Loadout"]);
                             continue;
                         }
-                        else
+                        
+
+                        if (Give_This_LoadOut_OneTime)
                         {
-                            g_Main.loadoutsGivenPerPlayer[player].Add(loadoutName);
+                            if (!g_Main.loadoutsGivenPerPlayer.ContainsKey(player))
+                            {
+                                g_Main.loadoutsGivenPerPlayer[player] = new HashSet<string>();
+                            }
+
+                            if (g_Main.loadoutsGivenPerPlayer[player].Contains(loadoutName))
+                            {
+                                Helper.AdvancedPlayerPrintToChat(player, Configs.Shared.StringLocalizer!["PrintChatToPlayer.Got.Loadout"]);
+                                continue;
+                            }
+                            else
+                            {
+                                g_Main.loadoutsGivenPerPlayer[player].Add(loadoutName);
+                            }
+                        }
+
+                        Helper.ForceStripePlayer(player,Force_Strip_CT_Players,Force_Strip_T_Players,Remove_Knife_CT,Remove_Knife_T);
+                        Helper.GivePlayerHealthNArmor(player,Players_Health_CT,Players_Health_T,Players_Armor_CT,Players_Armor_T);
+
+                        bool teamct = player.TeamNum == (byte)CsTeam.CounterTerrorist && !string.IsNullOrEmpty(ctWeapons)?true:false;
+                        bool teamt = player.TeamNum == (byte)CsTeam.Terrorist && !string.IsNullOrEmpty(tWeapons)?true:false;
+
+                        if(teamct)
+                        {
+                            Helper.GiveWeaponsToPlayer(player, ctWeapons,Force_Give_This_LoadOut);
+                        }else if(teamt)
+                        {
+                            Helper.GiveWeaponsToPlayer(player, tWeapons,Force_Give_This_LoadOut);
                         }
                     }
                 }
-
-                if(player.TeamNum == (byte)CsTeam.CounterTerrorist && ctWeapons != null)
+                if (g_Main.ForceRemoveGroundWeapons)
                 {
-                    var weaponsCTSet = new HashSet<string>(ctWeapons.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()));
-                    
-                    if(g_Main.ForceStripPlayers)
-                    {
-                        if (!g_Main.PlayerCleanUp.ContainsKey(player))
-                        {
-                            CounterStrikeSharp.API.Modules.Timers.Timer? timerz = AddTimer(0.1f, () => Helper.CleanUpPlayerWeapons(player), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-                            g_Main.PlayerCleanUp.Add(player, new Globals.GetPlayerWeapons(player,timerz,null!,weaponsCTSet));
-                        }
-                        if (g_Main.PlayerCleanUp.ContainsKey(player))
-                        {
-                            g_Main.PlayerCleanUp[player].Player = player;
-                            g_Main.PlayerCleanUp[player].Timer?.Kill();
-                            g_Main.PlayerCleanUp[player].Timer = null!;
-                            g_Main.PlayerCleanUp[player].Timer = AddTimer(0.1f, () => Helper.CleanUpPlayerWeapons(player), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-                            var newWeapons = weaponsCTSet.Except(g_Main.PlayerCleanUp[player].WeaponsNeeded).ToHashSet();
-                            g_Main.PlayerCleanUp[player].WeaponsNeeded.UnionWith(newWeapons);
-
-                            g_Main.PlayerCleanUp[player].KillTheTimer?.Kill();
-                            g_Main.PlayerCleanUp[player].KillTheTimer = AddTimer(3.0f, () => 
-                            {
-                                if (player != null && player.IsValid && g_Main.PlayerCleanUp.ContainsKey(player) && g_Main.PlayerCleanUp[player].Timer != null)
-                                {
-                                    g_Main.PlayerCleanUp[player].Timer?.Kill();
-                                    g_Main.PlayerCleanUp[player].Timer = null!;
-                                }
-                            }, TimerFlags.STOP_ON_MAPCHANGE);
-                        }
-                    }else
-                    {
-                        foreach (var playerMyWeaponst in playerMyWeapons)
-                        {
-                            var weaponsValue = playerMyWeaponst.Value;
-
-                            if (weaponsValue == null || !weaponsValue.IsValid)
-                                continue;
-
-                            var weaponsDesignerName = weaponsValue.DesignerName;
-
-                            if (string.IsNullOrWhiteSpace(weaponsDesignerName))
-                                continue;
-
-                            if (weaponsDesignerName.Contains("weapon_knife") && !g_Main.RemoveKnife || 
-                                weaponsDesignerName.Contains("weapon_bayonet") && !g_Main.RemoveKnife || 
-                                weaponsDesignerName.Contains("weapon_c4"))
-                                continue;
-
-                            if (!weaponsCTSet.Contains(weaponsDesignerName))
-                            {
-                                Helper.RemoveWeaponByName(player, weaponsDesignerName);
-                                
-                            }
-                        }
-                    }
-
-                    if (g_Main.ForceRemoveGroundWeapons == 1 || g_Main.ForceRemoveGroundWeapons == 2)
-                    {
-                        if (Helper.IsWarmup() || g_Main.ForceRemoveGroundWeapons == 2)
-                        {
-                            Helper.ClearGroundWeapons();
-                        }
-                    }
-                    
-                    foreach (var weaponCT in weaponsCTSet.Where(w => !string.IsNullOrWhiteSpace(w)))
-                    {
-                        Server.NextFrame(() =>
-                        {
-                            AddTimer(g_Main.DelayGiveLoadOut, () =>
-                            {
-                                Helper.GiveWeaponsToPlayer(player, weaponCT);
-                            },TimerFlags.STOP_ON_MAPCHANGE);
-                        });
-                    }
-                    
-                }else if(player.TeamNum == (byte)CsTeam.Terrorist && tWeapons != null)
-                {
-                    var weaponsTSet = new HashSet<string>(tWeapons.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()));
-
-                    if(g_Main.ForceStripPlayers)
-                    {
-                        if (!g_Main.PlayerCleanUp.ContainsKey(player))
-                        {
-                            CounterStrikeSharp.API.Modules.Timers.Timer? timerz = AddTimer(0.1f, () => Helper.CleanUpPlayerWeapons(player), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-                            g_Main.PlayerCleanUp.Add(player, new Globals.GetPlayerWeapons(player,timerz,null!,weaponsTSet));
-                        }
-                        if (g_Main.PlayerCleanUp.ContainsKey(player))
-                        {
-                            g_Main.PlayerCleanUp[player].Player = player;
-                            g_Main.PlayerCleanUp[player].Timer?.Kill();
-                            g_Main.PlayerCleanUp[player].Timer = null!;
-                            g_Main.PlayerCleanUp[player].Timer = AddTimer(0.1f, () => Helper.CleanUpPlayerWeapons(player), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-                            var newWeapons = weaponsTSet.Except(g_Main.PlayerCleanUp[player].WeaponsNeeded).ToHashSet();
-                            g_Main.PlayerCleanUp[player].WeaponsNeeded.UnionWith(newWeapons);
-
-                            g_Main.PlayerCleanUp[player].KillTheTimer?.Kill();
-                            g_Main.PlayerCleanUp[player].KillTheTimer = AddTimer(3.0f, () => 
-                            {
-                                if (player != null && player.IsValid && g_Main.PlayerCleanUp.ContainsKey(player) && g_Main.PlayerCleanUp[player].Timer != null)
-                                {
-                                    g_Main.PlayerCleanUp[player].Timer?.Kill();
-                                    g_Main.PlayerCleanUp[player].Timer = null!;
-                                }
-                            }, TimerFlags.STOP_ON_MAPCHANGE);
-                        }
-                    }else
-                    {
-                        foreach (var playerMyWeaponst in playerMyWeapons)
-                        {
-                            var weaponsValue = playerMyWeaponst.Value;
-
-                            if (weaponsValue == null || !weaponsValue.IsValid)
-                                continue;
-
-                            var weaponsDesignerName = weaponsValue.DesignerName;
-
-                            if (string.IsNullOrWhiteSpace(weaponsDesignerName))
-                                continue;
-
-                            if (weaponsDesignerName.Contains("weapon_knife") && !g_Main.RemoveKnife || 
-                                weaponsDesignerName.Contains("weapon_bayonet") && !g_Main.RemoveKnife || 
-                                weaponsDesignerName.Contains("weapon_c4"))
-                                continue;
-
-                            if (!weaponsTSet.Contains(weaponsDesignerName))
-                            {
-                                Helper.RemoveWeaponByName(player, weaponsDesignerName);
-                                
-                            }
-                        }
-                    }
-
-                    if (g_Main.ForceRemoveGroundWeapons == 1 || g_Main.ForceRemoveGroundWeapons == 2)
-                    {
-                        if (Helper.IsWarmup() || g_Main.ForceRemoveGroundWeapons == 2)
-                        {
-                            Helper.ClearGroundWeapons();
-                        }
-                    }
-                    
-                    foreach (var weaponCT in weaponsTSet.Where(w => !string.IsNullOrWhiteSpace(w)))
-                    {
-                        Server.NextFrame(() =>
-                        {
-                            AddTimer(g_Main.DelayGiveLoadOut, () =>
-                            {
-                                Helper.GiveWeaponsToPlayer(player, weaponCT);
-                            },TimerFlags.STOP_ON_MAPCHANGE);
-                        });
-                    }
+                    Helper.ClearGroundWeapons();
                 }
-            }
-        }
+            },TimerFlags.STOP_ON_MAPCHANGE);
+        });
         return HookResult.Continue;
     }
 
@@ -468,25 +363,6 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
     }
 
 
-    private HookResult OnEventPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
-    {
-        if(@event == null)return HookResult.Continue;
-
-        var player = @event.Userid;
-        if(player == null || !player.IsValid)return HookResult.Continue;
-
-        if (g_Main.PlayerCleanUp.ContainsKey(player))
-        {
-            g_Main.PlayerCleanUp[player].Timer?.Kill();
-            g_Main.PlayerCleanUp[player].Timer = null!;
-
-            g_Main.PlayerCleanUp[player].KillTheTimer?.Kill();
-            g_Main.PlayerCleanUp[player].KillTheTimer = null!;
-        }
-        return HookResult.Continue;
-    }
-
-
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
     {
         if (@event == null)return HookResult.Continue;
@@ -494,15 +370,6 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
 
         if (player == null || !player.IsValid)return HookResult.Continue;
 
-        if (g_Main.PlayerCleanUp.ContainsKey(player))
-        {
-            g_Main.PlayerCleanUp[player].Timer?.Kill();
-            g_Main.PlayerCleanUp[player].Timer = null!;
-
-            g_Main.PlayerCleanUp[player].KillTheTimer?.Kill();
-            g_Main.PlayerCleanUp[player].KillTheTimer = null!;
-            g_Main.PlayerCleanUp.Remove(player);
-        }
         if (g_Main.loadoutsGivenPerPlayer.ContainsKey(player))g_Main.loadoutsGivenPerPlayer.Remove(player);
 
         return HookResult.Continue;
@@ -516,17 +383,4 @@ public class SpawnLoadoutGoldKingZ : BasePlugin
     {
         Helper.ClearVariables();
     }
-
-    /* [ConsoleCommand("css_test", "test")]
-    [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    public void GetJsonCorrectissoaaan(CCSPlayerController? player, CommandInfo commandInfo)
-    {
-        if (player == null || !player.IsValid) return;
-        Server.PrintToConsole($"Remove_BuyMenu: {g_Main.RemoveBuyMenu}");
-        Server.PrintToConsole($"Remove_Custom_Point_Server_Command: {g_Main.ForceRemoveServerCommands}");
-        Server.PrintToConsole($"Remove_Custom_Point_Client_Command: {g_Main.ForceRemoveClientCommands}");
-        Server.PrintToConsole($"Remove_Ground_Weapons: {g_Main.ForceRemoveGroundWeapons}");
-        Server.PrintToConsole($"Delay_InXSecs_Give_LoadOuts: {g_Main.DelayGiveLoadOut}");
-        Server.PrintToConsole($"Force_Strip_Players: {g_Main.ForceStripPlayers}");      
-    } */
 }

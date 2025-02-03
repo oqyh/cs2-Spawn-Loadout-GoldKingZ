@@ -27,7 +27,7 @@ public class PlayerChat
                 return HookResult.Continue;
             }
             Helper.ClearVariables();
-            Helper.SetValuesToGlobals();
+            Helper.SetValues(player);
             Helper.AdvancedPlayerPrintToChat(player, Configs.Shared.StringLocalizer!["PrintChatToPlayer.Plugin.Reloaded"]); 
         }
         return HookResult.Continue;
