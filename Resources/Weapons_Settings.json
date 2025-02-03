@@ -1,7 +1,48 @@
+//==========================
+//    Global Options
+//==========================
+// "Force_Strip_CT_Players": true //Force To Strip CT Players [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+// "Force_Strip_T_Players": true //Force To Strip T Players [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+// "Remove_BuyMenu": true //Remove Buy Menu (If false Or Not Been Used This Will Disabled)
+// "Remove_Custom_Point_Server_Command": true //Remove point_servercommand Custom ConVars (If false Or Not Been Used This Will Disabled)
+// "Remove_Custom_Point_Client_Command": true //Remove point_clientcommand Custom ConVars (If false Or Not Been Used This Will Disabled)
+// "Players_Health_CT": 35 //Give ALL CT Players Health 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+// "Players_Health_T": 35 //Give ALL T Players Health 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+// "Players_Armor_CT": 35 //Give ALL CT Players Armor 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+// "Players_Armor_T": 35 //Give ALL T Players Armor 35 [To All LoadOuts] (If -1 Or Not Been Used This Will Disabled)
+// "Remove_Ground_Weapons_After_Give_Loadouts": true //Remove Ground Weapons After Give Loadouts (If false Or Not Been Used This Will Disabled)
+// "Delay_InXSecs_Give_LoadOuts": 0.2 //Delay On Give LoadOuts 0.2 Secs (If 0.0 Or Not Been Used This Will Return To 0.0)
+// "Remove_Knife_CT": true //Remove CT Players Knifes [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+// "Remove_Knife_T": true //Remove T Players Knifes [To All LoadOuts] (If false Or Not Been Used This Will Disabled)
+//==========================
+//==========================
+// Specific LOADOUT Options
+//==========================
+// "Flags": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip" //Give This LoadOut For These Flags Only (If Empty Or Not Been Used This Will Return To Give Anyone)
+// "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade" //CT Loadout
+// "T": "weapon_glock,weapon_knife,weapon_smokegrenade" //T Loadout
+// "CT_Refill_Nades": "weapon_decoy" //Give Auto Refill (ex: decoy) CT Side
+// "CT_Refill_Time_InSec": 30 //Every 30 Secs Give CT_Refill_Nades
+// "T_Refill_Nades": "weapon_decoy" //Give Auto Refill (ex: decoy) T Side
+// "T_Refill_Time_InSec": 30 //Every 30 Secs Give T_Refill_Nades
+// "Force_Strip_CT_Players": true // Force Strip CT Players Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+// "Force_Strip_T_Players": true // Force Strip T Players Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+// "Players_Health_CT": 35 //Give ALL CT Players Health 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+// "Players_Health_T": 35 //Give ALL T Players Health 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+// "Players_Armor_CT": 35 //Give ALL CT Players Armor 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+// "Players_Armor_T": 35 //Give ALL T Players Armor 35 Who Has This LoadOut (If -1 Or Not Been Used This Will Disabled)
+// "Remove_Knife_CT": true //Remove CT Players Knifes Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+// "Remove_Knife_T": true //Remove T Players Knifes Who Has This LoadOut (If false Or Not Been Used This Will Disabled)
+// "Force_Give_This_LoadOut": true // Force Give This LoadOut (By Swaping His Current Weapons) (If false Or Not Been Used This Will Disabled)
+// "Give_This_LoadOut_OneTime": true // Give This LoadOut On Every New Round One Time (If false Or Not Been Used This Will Disabled)
+// "Give_This_LoadOut_On_Round_And_After": 1 // Only Give This LoadOut On Round (0 = Warmup || 1 = Round One etc...) (If -1 Or Not Been Used This Will Disabled)
+//==========================
+	
+
 {
   "ANY":
   {
-    "Remove_Ground_Weapons": 1,
+    "Remove_Ground_Weapons_After_Give_Loadouts": true,
     
 	"LOADOUT_1":
 	{
@@ -15,7 +56,7 @@
     },
     "LOADOUT_2":
 	{
-      "Give_This_LoadOut_PerRound_Only": 1,
+      "Give_This_LoadOut_OneTime": true,
       "CT": "weapon_hkp2000,weapon_knife,weapon_smokegrenade",
       "T": "weapon_glock,weapon_knife,weapon_smokegrenade"
     }
@@ -24,7 +65,7 @@
   {
     "LOADOUT_1":
 	{
-      "FLAGS": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
+      "Flags": "@css/root,@css/admin,@css/vip,#css/admin,#css/vip",
       "CT_Refill_Nades": "weapon_decoy",
       "CT_Refill_Time_InSec": 30,
       "T_Refill_Nades": "weapon_decoy",
@@ -32,7 +73,7 @@
     },
     "LOADOUT_2":
 	{
-      "Give_This_LoadOut_PerRound_Only": 2,
+      "Give_This_LoadOut_OneTime": true,
       "CT": "weapon_decoy",
       "T": "weapon_decoy"
     }
